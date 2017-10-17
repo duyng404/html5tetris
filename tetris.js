@@ -1,8 +1,8 @@
 // tile types
 const ITILE=0; const JTILE=1; const LTILE=2; const OTILE=3; const STILE=4; const TTILE=5; const ZTILE=6;
 const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E];
-// newx = -oldy
-// newy = oldx
+
+// blueprints of all the states
 const STATE = [
 	// ITILE
 	[
@@ -62,7 +62,9 @@ var gvar = {
 	xBoard: 0,
 	yBoard: 150,
 	// tile size
-	wTile: 50
+	wTile: 50,
+	// ready to make a new tile or not
+	newTileReady: false
 };
 
 // active Tile
@@ -132,12 +134,15 @@ function placeASquare(x, y, type){
 	// the "real" coordinate in pixels
 	var rx = gvar.xBoard+(x*gvar.wTile)+1;
 	var ry = gvar.yBoard+(y*gvar.wTile)+1;
-	return game.add.sprite(rx,ry, texture[type]);
+	var a = game.add.sprite(rx,ry, texture[type]);
+	//console.log(a);
+	return a;
+	//return agame.add.sprite(rx,ry, texture[type]);
 }
 
-function makeatile(type){
+function makeNewTile(type){
 	// get the first state of that type
-	aTile.sc = STATE[type][0];
+	aTile.sc = STATE[type][0].slice();
 	// put squares on screen according to the blueprint
 	for (let i of aTile.sc){
 		aTile.sq.push(placeASquare(gvar.xSpawn + i[0], gvar.ySpawn + i[1], type));
@@ -188,7 +193,7 @@ function rotateRight(){
 	// precalculate the new position after rotate
 	var newx = aTile.x; var newy = aTile.y;
 	var newstate = (aTile.state + 1) % STATE[aTile.type].length;
-	var newsc = STATE[aTile.type][newstate];
+	var newsc = STATE[aTile.type][newstate].slice();
 	// bound check. If it goes outside after rotate, nudge it back
 	for (let i of newsc){
 		if (newx + i[0] > gvar.wBoard-1) newx -= 1;
@@ -201,7 +206,7 @@ function rotateRight(){
 	// we're clear, let's rotate
 	aTile.x = newx;
 	aTile.y = newy;
-	aTile.sc = newsc;
+	aTile.sc = newsc.slice();
 	aTile.state = newstate;
 	transformTile();
 }
@@ -222,10 +227,21 @@ function commit(){
 		aTile.y += 1;
 		count += 1;
 	}
-	//transformTile();
 	// now we create new textures in the same place
-	tBoard[1,16] = placeASquare(1,16,2);
-	console.log(tBoard);
+	for (var i=0; i<aTile.sq.length; i++){
+		var newx = aTile.x + aTile.sc[i][0];
+		var newy = aTile.y + aTile.sc[i][1];
+		tBoard[newx][newy] = placeASquare(newx,newy,aTile.type);
+		// also update the board state
+		board[newx][newy] = 1;
+	}
+	// delete all the squares in active tile
+	while (aTile.sq.length > 0){
+		aTile.sq.pop().kill();
+		aTile.sc.pop();
+	}
+	// ready to make a new tile
+	gvar.newTileReady = true;
 }
 
 function create() {
@@ -236,12 +252,8 @@ function create() {
 		tmp.destroy();
 	}
 
-	makeatile(ZTILE);
+	gvar.newTileReady = true;
 
-	//var keyup = game.input.keyboard.addKey(Phaser.Keyboard.UP);
-	//keyup.onDown.add(function(){
-	//	rotateTween = game.add.tween(aTile.sq).to( {angle: aTile.sq.angle+90}, 50, Phaser.Easing.Linear.None, true );
-	//}, this);
 	var keyup = game.input.keyboard.addKey(Phaser.Keyboard.UP);
 	keyup.onDown.add(rotateRight, this);
 	var keyleft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
@@ -253,11 +265,16 @@ function create() {
 }
 
 function update() {
+	if (gvar.newTileReady){
+		gvar.newTileReady = false;
+		var type = Math.floor(Math.random() * 7);
+		makeNewTile(type);
+	}
 }
 
 function render() {
-	//game.debug.spriteInfo(ship, 20,32);
-	game.debug.cameraInfo(game.camera,20,32);
+	game.debug.spriteInfo(aTile.sq[0], 20,32);
+	//game.debug.cameraInfo(game.camera,20,32);
 	//for (var i=0; i<this.geometry.length; i++){
 	//	game.debug.geom(this.geometry[i],'#ffffff');
 	//}
