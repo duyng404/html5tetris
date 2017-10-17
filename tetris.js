@@ -1,6 +1,50 @@
 // tile types
 const ITILE=0; const JTILE=1; const LTILE=2; const OTILE=3; const STILE=4; const TTILE=5; const ZTILE=6;
 const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E];
+// newx = -oldy
+// newy = oldx
+const STATE = [
+	// ITILE
+	[
+		[[0,0], [0,-1], [0,1], [0,2]],
+		[[0,0], [-1,0], [1,0], [2,0]]
+	],
+	// JTILE
+	[
+		[[0,0], [-1,0], [1,0], [1,1]],
+		[[0,0], [0,-1], [0,1], [-1,1]],
+		[[0,0], [1,0], [-1,0], [-1,-1]],
+		[[0,0], [0,1], [0,-1], [1,-1]]
+	],
+	// LTILE
+	[
+		[[0,0], [-1,0], [1,0], [-1,1]],
+		[[0,0], [0,-1], [0,1], [-1,-1]],
+		[[0,0], [1,0], [-1,0], [1,-1]],
+		[[0,0], [0,1], [0,-1], [1,1]]
+	],
+	// OTILE
+	[
+		[[0,0], [1,0], [0,1], [1,1]]
+	],
+	// STILE
+	[
+		[[0,0], [1,0], [0,1], [-1,1]],
+		[[0,0], [0,1], [-1,0], [-1,-1]]
+	],
+	// TTILE
+	[
+		[[0,0], [-1,0], [1,0], [0,1]],
+		[[0,0], [0,-1], [0,1], [-1,0]],
+		[[0,0], [1,0], [-1,0], [0,-1]],
+		[[0,0], [0,1], [0,-1], [1,0]]
+	],
+	// ZTILE
+	[
+		[[0,0], [-1,0], [0,1], [1,1]],
+		[[0,0], [0,-1], [-1,0], [-1,1]]
+	]
+]
 var game;
 
 // global variables
@@ -16,7 +60,7 @@ var gvar = {
 	hBoard: 16,
 	// top left corner of board (in pixels)
 	xBoard: 0,
-	yBoard: 200,
+	yBoard: 150,
 	// tile size
 	wTile: 50
 };
@@ -31,7 +75,9 @@ var aTile = {
 	x: 0,
 	y: 0,
 	// type
-	type: 0
+	type: 0,
+	// state, depend on each individual tile
+	state: 0
 };
 
 // current game board
@@ -49,7 +95,7 @@ var board = [ // 10x16, one extra line on top for spawning
 ]
 
 // current game board, but stores sprite
-var tBoard = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]];
+var tBoard = [[],[],[],[],[],[],[],[],[],[]];
 
 // array of prefabs texture
 var texture = []
@@ -90,81 +136,14 @@ function placeASquare(x, y, type){
 }
 
 function makeatile(type){
-	// draw the squares
-	switch(type){
-		case ITILE:
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn, type));
-			aTile.sc.push([0,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn-1, type));
-			aTile.sc.push([0,-1]);
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn+1, type));
-			aTile.sc.push([0,1]);
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn+2, type));
-			aTile.sc.push([0,2]);
-			break;
-		case JTILE:
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn, type));
-			aTile.sc.push([0,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn-1, gvar.ySpawn, type));
-			aTile.sc.push([-1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn, type));
-			aTile.sc.push([1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn+1, type));
-			aTile.sc.push([1,1]);
-			break;
-		case LTILE:
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn, type));
-			aTile.sc.push([0,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn-1, gvar.ySpawn, type));
-			aTile.sc.push([-1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn, type));
-			aTile.sc.push([1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn-1, gvar.ySpawn+1, type));
-			aTile.sc.push([-1,1]);
-			break;
-		case OTILE:
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn, type));
-			aTile.sc.push([0,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn, type));
-			aTile.sc.push([1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn+1, type));
-			aTile.sc.push([0,1]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn+1, type));
-			aTile.sc.push([1,1]);
-			break;
-		case STILE:
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn, type));
-			aTile.sc.push([0,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn, type));
-			aTile.sc.push([1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn+1, type));
-			aTile.sc.push([0,1]);
-			aTile.sq.push(placeASquare(gvar.xSpawn-1, gvar.ySpawn+1, type));
-			aTile.sc.push([-1,1]);
-			break;
-		case TTILE:
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn, type));
-			aTile.sc.push([0,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn-1, gvar.ySpawn, type));
-			aTile.sc.push([-1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn, type));
-			aTile.sc.push([1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn+1, type));
-			aTile.sc.push([0,1]);
-			break;
-		case ZTILE:
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn, type));
-			aTile.sc.push([0,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn-1, gvar.ySpawn, type));
-			aTile.sc.push([-1,0]);
-			aTile.sq.push(placeASquare(gvar.xSpawn, gvar.ySpawn+1, type));
-			aTile.sc.push([0,1]);
-			aTile.sq.push(placeASquare(gvar.xSpawn+1, gvar.ySpawn+1, type));
-			aTile.sc.push([1,1]);
-			break;
-		default:
+	// get the first state of that type
+	aTile.sc = STATE[type][0];
+	// put squares on screen according to the blueprint
+	for (let i of aTile.sc){
+		aTile.sq.push(placeASquare(gvar.xSpawn + i[0], gvar.ySpawn + i[1], type));
 	}
-	// update general info
+	// other params
+	aTile.state = 0;
 	aTile.type = type;
 	aTile.x = gvar.xSpawn;
 	aTile.y = gvar.ySpawn;
@@ -206,25 +185,24 @@ function moveRight(){
 }
 
 function rotateRight(){
-	// no rotation for O-tile!!
-	if (aTile.type == OTILE) return;
-	// precalculate the new position after rotating
+	// precalculate the new position after rotate
 	var newx = aTile.x; var newy = aTile.y;
-	var newsc = [];
-	for (var i=0; i<aTile.sc.length; i++){
-		newsc.push([- aTile.sc[i][1],aTile.sc[i][0]]);
-		// bound check. If it goes outside after rotate, nudge it back
-		if (newx + newsc[i][0] > gvar.wBoard-1) newx -= 1;
-		if (newx + newsc[i][0] < 0) newx += 1;
+	var newstate = (aTile.state + 1) % STATE[aTile.type].length;
+	var newsc = STATE[aTile.type][newstate];
+	// bound check. If it goes outside after rotate, nudge it back
+	for (let i of newsc){
+		if (newx + i[0] > gvar.wBoard-1) newx -= 1;
+		if (newx + i[0] < 0) newx += 1;
 	}
-	// check if any existing tile is in the way
-	for (var i=0; i<aTile.sc.length; i++){
-		if (board[newx + newsc[i][0]][newy + newsc[i][1]] == 1) return;
+	// check if any existing tile is in the way. if it is, NO ROTATE!!!
+	for (let i of newsc){
+		if (board[newx + i[0]][newy + i[1]] == 1) return;
 	}
 	// we're clear, let's rotate
 	aTile.x = newx;
 	aTile.y = newy;
 	aTile.sc = newsc;
+	aTile.state = newstate;
 	transformTile();
 }
 
@@ -232,7 +210,7 @@ function itsOkayToGoDown(){
 	for (var i=0; i<aTile.sc.length; i++){
 		var newx = aTile.x + aTile.sc[i][0];
 		var newy = aTile.y + aTile.sc[i][1];
-		if (newy+1 > gvar.hBoard-1 || board[newx][newy+1] == 1) return false;
+		if (newy+1 > gvar.hBoard || board[newx][newy+1] == 1) return false;
 	}
 	return true;
 }
@@ -244,9 +222,10 @@ function commit(){
 		aTile.y += 1;
 		count += 1;
 	}
-	transformTile();
+	//transformTile();
 	// now we create new textures in the same place
-	//tBoard[0,1] = placeASquare(16,9,2);
+	tBoard[1,16] = placeASquare(1,16,2);
+	console.log(tBoard);
 }
 
 function create() {
