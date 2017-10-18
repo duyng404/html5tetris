@@ -83,7 +83,9 @@ var gvar = {
 	// cleaning up board or not
 	cleaningUp: false,
 	// accepting input or not
-	acceptingInput: false
+	acceptingInput: false,
+	// difficultyTimer, changes accordingly as level increases
+	diffTimer: 1500
 };
 
 // active Tile
@@ -97,8 +99,10 @@ var aTile = {
 	y: 0,
 	// type
 	type: 0,
-	// state, depend on each individual tile
-	state: 0
+	// state, depend on what type it is
+	state: 0,
+	// the timer that lowers the tile down periodically
+	timer: undefined
 };
 
 // ghost Tile
@@ -185,6 +189,10 @@ function makeNewTile(type){
 	aTile.type = type;
 	aTile.x = gvar.xSpawn;
 	aTile.y = gvar.ySpawn;
+	// attach a timer
+	aTile.timer = game.time.create(false);
+	aTile.timer.loop(gvar.diffTimer,lowerTile,this);
+	aTile.timer.start();
 }
 
 function transformTile(){
@@ -226,6 +234,19 @@ function updateGhost(){
 	for (let tile of gTile.sq){
 		tile.y += count * gvar.wTile;
 	}
+}
+
+function lowerTile(){
+	gvar.acceptingInput = false;
+	if (itsOkayToGoDown(aTile)){
+		aTile.y += 1;
+		for (let tile of aTile.sq){
+			tile.y += gvar.wTile;
+		}
+	} else {
+		commit();
+	}
+	gvar.acceptingInput = true;
 }
 
 function moveLeft(){
@@ -374,6 +395,7 @@ function clearFull(){
 
 function commit(){
 	gvar.acceptingInput = false;
+	aTile.timer.destroy();
 	// keep on lowering the active tile until cannot do it anymore
 	var count = 0;
 	while(itsOkayToGoDown(aTile)){
