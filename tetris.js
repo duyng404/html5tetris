@@ -1,6 +1,11 @@
+// javascript doesn't have a sort number functions wtf
+function sortNumber(a,b) {
+    return a - b;
+}
+
 // tile types
 const ITILE=0; const JTILE=1; const LTILE=2; const OTILE=3; const STILE=4; const TTILE=5; const ZTILE=6;
-const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E];
+const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E,0xFFFFFF,0x000000];
 
 // blueprints of all the states
 const STATE = [
@@ -64,7 +69,11 @@ var gvar = {
 	// tile size
 	wTile: 50,
 	// ready to make a new tile or not
-	newTileReady: false
+	newTileReady: false,
+	// cleaning up board or not
+	cleaningUp: false,
+	// accepting input or not
+	acceptingInput: false
 };
 
 // active Tile
@@ -99,8 +108,14 @@ var board = [ // 10x16, one extra line on top for spawning
 // current game board, but stores sprite
 var tBoard = [[],[],[],[],[],[],[],[],[],[]];
 
+// rows that are full and marked for deletion
+var del = [];
+
 // array of prefabs texture
-var texture = []
+var texture = [];
+
+// statistics of how many tiles have created so far
+var stats = [0,0,0,0,0,0,0];
 
 window.onload = function(){
     // creation of the game itself
@@ -115,16 +130,16 @@ function preload() {
 /* takes in a position on the board, draw a square and return it */
 function drawASquare(x, y, color){
 	// the "real" coordinate in pixels
-	var rx = gvar.xBoard+(x*gvar.wTile)+1;
-	var ry = gvar.yBoard+(y*gvar.wTile)+1;
+	var rx = gvar.xBoard+(x*gvar.wTile);
+	var ry = gvar.yBoard+(y*gvar.wTile);
 	// make a graphic item and start to draw
 	square = game.add.graphics(0,0);
 	square.beginFill(color);
 	square.lineStyle(0,0,0);
 	square.moveTo(rx,ry);
-	square.lineTo(rx+gvar.wTile-2,ry);
-	square.lineTo(rx+gvar.wTile-2,ry+gvar.wTile-2);
-	square.lineTo(rx,ry+gvar.wTile-2);
+	square.lineTo(rx+gvar.wTile-1,ry);
+	square.lineTo(rx+gvar.wTile-1,ry+gvar.wTile-1);
+	square.lineTo(rx,ry+gvar.wTile-1);
 	square.lineTo(rx,ry);
 	square.endFill();
 	return square;
@@ -192,6 +207,7 @@ function moveRight(){
 function rotateRight(){
 	// precalculate the new position after rotate
 	var newx = aTile.x; var newy = aTile.y;
+	//console.log(type,STATE);
 	var newstate = (aTile.state + 1) % STATE[aTile.type].length;
 	var newsc = STATE[aTile.type][newstate].slice();
 	// bound check. If it goes outside after rotate, nudge it back
@@ -220,7 +236,91 @@ function itsOkayToGoDown(){
 	return true;
 }
 
+function checkRowFull(y){
+	var full = true;
+	for (var i=0; i<gvar.wBoard; i++){
+		if (board[i][y] == 0){
+			full = false;
+			break;
+		}
+	}
+	if (full){
+		del.push(y);
+	}
+}
+
+// color1 and color2 are index of COLOR array
+function flashTexture(x,y,color1,color2,callback){
+	var timer = game.time.create(false);
+	//console.log(color1,color2,tBoard);
+	var count = 0;
+	timer.repeat(100,4,function(timer){
+		if (count % 2 == 0){
+			tBoard[x][y].loadTexture(texture[color2]);
+			count+=1;
+		}
+		else {
+			tBoard[x][y].loadTexture(texture[color1]);
+			count+=1;
+		}
+	},this,count);
+	timer.onComplete.add(function(){
+		if (callback && typeof callback === "function" && !gvar.cleaningUp){
+			gvar.cleaningUp = true;
+			var timer= game.time.create(true);
+			timer.add(50,callback,this);
+			timer.start();
+		}
+	});
+	timer.start();
+}
+
+function refreshBoard(){
+	gvar.cleaningUp = true;
+	del.sort(sortNumber);
+	del.reverse();
+	while(del.length > 0){
+		var therow = del.pop();
+		for (var i=0; i<gvar.wBoard; i++){
+			// remove the texture
+			board[i][therow] = 0;
+			tBoard[i][therow].kill();
+			delete tBoard[i][therow];
+		}
+		// move everything down one row
+		for (var i=therow; i>0; i--){
+			for (var j=0; j<gvar.wBoard; j++){
+				board[j][i] = board[j][i-1];
+				tBoard[j][i] = tBoard[j][i-1];
+				//console.log(i,j)
+				if (tBoard[j][i]){
+					tBoard[j][i].x = gvar.xBoard + gvar.wTile * j;
+					tBoard[j][i].y = gvar.yBoard + gvar.wTile * i;
+				}
+			}
+		}
+		// set the top row to zero
+		for (var j=0; j<gvar.wBoard; j++){
+			board[j][0] = 0;
+			delete tBoard[j][0];
+		}
+	}
+	gvar.cleaningUp = false;
+	gvar.newTileReady = true;
+	gvar.acceptingInput = true;
+}
+
+function clearFull(){
+	gvar.newTileReady = false;
+	for (let therow of del){
+		for (var i=0; i<gvar.wBoard; i++){
+			flashTexture(i,therow,texture.length-1,texture.length-2,refreshBoard);
+		}
+	}
+}
+
 function commit(){
+	gvar.acceptingInput = false;
 	// keep on lowering the active tile until cannot do it anymore
 	var count = 0;
 	while(itsOkayToGoDown()){
@@ -234,14 +334,44 @@ function commit(){
 		tBoard[newx][newy] = placeASquare(newx,newy,aTile.type);
 		// also update the board state
 		board[newx][newy] = 1;
+		// also check if the row is full
+		checkRowFull(newy);
 	}
 	// delete all the squares in active tile
 	while (aTile.sq.length > 0){
 		aTile.sq.pop().kill();
 		aTile.sc.pop();
 	}
+	// remove any row if it is full
+	if (del.length>0) clearFull();
 	// ready to make a new tile
-	gvar.newTileReady = true;
+	else {
+		gvar.newTileReady = true;
+		gvar.acceptingInput = true;
+	}
+}
+
+function processInput(context,s){
+	switch(s){
+		case 'right':
+			if (gvar.acceptingInput)
+				moveRight();
+			break;
+		case 'left':
+			if (gvar.acceptingInput)
+				moveLeft();
+			break;
+		case 'up':
+			if (gvar.acceptingInput)
+				rotateRight();
+			break;
+		case 'down':
+			if (gvar.acceptingInput)
+				commit();
+			break;
+		default:
+			console.log('unhandled input:',s);
+	}
 }
 
 function create() {
@@ -253,27 +383,47 @@ function create() {
 	}
 
 	gvar.newTileReady = true;
+	gvar.acceptingInput = true;
 
 	var keyup = game.input.keyboard.addKey(Phaser.Keyboard.UP);
-	keyup.onDown.add(rotateRight, this);
+	keyup.onDown.add(processInput, this, 0, 'up');
 	var keyleft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
-	keyleft.onDown.add(moveLeft, this);
+	keyleft.onDown.add(processInput, this, 0, 'left');
 	var keyright = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
-	keyright.onDown.add(moveRight, this);
+	keyright.onDown.add(processInput, this, 0, 'right');
 	var keydown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
-	keydown.onDown.add(commit, this);
+	keydown.onDown.add(processInput, this, 0, 'down');
+}
+
+function getRandomType(){
+	var result = 0;
+	var max = Math.max.apply(Math,stats);
+	if (max == 0){
+		result = Math.floor(Math.random() * 7);
+		stats[result]+=1;
+	} else {
+		// construct an array
+		var chance = [];
+		for (var i=0; i<7; i++)
+			for (var j=0; j< (max-stats[i]+1)+Math.floor((max-stats[i])*0.75); j++) chance.push(i);
+		result = chance[Math.floor(Math.random() * chance.length)];
+		stats[result]+=1;
+		console.log(stats,chance,result);
+	}
+	return result;
 }
 
 function update() {
 	if (gvar.newTileReady){
 		gvar.newTileReady = false;
-		var type = Math.floor(Math.random() * 7);
+		//var type = Math.floor(Math.random() * 7);
+		var type = getRandomType();
 		makeNewTile(type);
 	}
 }
 
 function render() {
-	game.debug.spriteInfo(aTile.sq[0], 20,32);
+	//game.debug.spriteInfo(aTile.sq[0], 20,32);
 	//game.debug.cameraInfo(game.camera,20,32);
 	//for (var i=0; i<this.geometry.length; i++){
 	//	game.debug.geom(this.geometry[i],'#ffffff');
