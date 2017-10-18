@@ -72,10 +72,10 @@ var gvar = {
 	ySpawn: 1,
 	// board sizes
 	wBoard: 10,
-	hBoard: 16,
+	hBoard: 17,
 	// top left corner of board (in pixels)
 	xBoard: 0,
-	yBoard: 150,
+	yBoard: 100,
 	// tile size
 	wTile: 50,
 	// ready to make a new tile or not
@@ -121,16 +121,16 @@ var gTile = {
 
 // current game board
 var board = [ // 10x16, one extra line on top for spawning
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 ]
 
 // current game board, but stores sprite
@@ -149,6 +149,16 @@ var stats = [0,0,0,0,0,0,0];
 var hud = {};
 
 window.onload = function(){
+	// get user's window width and height
+	var windowWidth = window.innerWidth;
+	var windowHeight = window.innerHeight;
+	var ratio = windowWidth / windowHeight;
+	var newWidth = gvar.gameWidth;
+	if (ratio > 0.5) newWidth = gvar.gameHeight * ratio;
+	var difference = newWidth - gvar.gameWidth;
+	gvar.gameWidth = newWidth;
+	gvar.xBoard += difference / 2;
+	console.log(difference, gvar.xBoard);
     // creation of the game itself
 	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 }
@@ -156,7 +166,7 @@ window.onload = function(){
 function preload() {
 	game.load.bitmapFont('arcadefont','./arcadefont.png','./arcadefont.fnt');
 	// resize so it fits the screen
-	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 }
 
 /* takes in a position on the board, draw a square and return it */
@@ -191,8 +201,9 @@ function makeNewTile(type){
 	// get the first state of that type
 	aTile.sc = STATE[type][0].slice();
 	// put squares on screen according to the blueprint
-	for (let i of aTile.sc){
-		aTile.sq.push(placeASquare(gvar.xSpawn + i[0], gvar.ySpawn + i[1], type));
+	for (var i=0; i<aTile.sc.length; i++){
+		aTile.sq.push(placeASquare(gvar.xSpawn + aTile.sc[i][0], gvar.ySpawn + aTile.sc[i][1], type));
+		aTile.sq[i].mask = hud.gameFieldMask;
 	}
 	// other params
 	aTile.state = 0;
@@ -451,25 +462,42 @@ function commit(){
 }
 
 function processInput(context,s){
-	switch(s){
-		case 'right':
-			if (gvar.acceptingInput)
-				moveRight();
-			break;
-		case 'left':
-			if (gvar.acceptingInput)
-				moveLeft();
-			break;
-		case 'up':
-			if (gvar.acceptingInput)
+	if (arguments[1] == 'right'){
+		if (gvar.acceptingInput)
+			moveRight();
+		return;
+	} else if (arguments[1] == 'left'){
+		if (gvar.acceptingInput)
+			moveLeft();
+		return;
+	} else if (arguments[1] == 'up'){
+		if (gvar.acceptingInput)
+			rotateRight();
+		return;
+	} else if (arguments[1] == 'down'){
+		if (gvar.acceptingInput)
+			commit();
+		return;
+	} else if (arguments[2] == 'touch'){
+		if (game.paused) game.paused = false;
+		if (gvar.acceptingInput){
+			px = arguments[0].x;
+			py = arguments[0].y;
+			if (py / game.height < 0.2){
+				game.paused = true;
+			} else if (py / game.height < 0.4){
 				rotateRight();
-			break;
-		case 'down':
-			if (gvar.acceptingInput)
+			} else if (py / game.height < 0.7){
+				if (px / game.width < 0.5) moveLeft();
+				else moveRight();
+			} else {
 				commit();
-			break;
-		default:
-			console.log('unhandled input:',s);
+			}
+		}
+		return;
+	} else {
+		console.log('Unhandled input:',arguments);
+		return;
 	}
 }
 
@@ -484,6 +512,24 @@ function create() {
 	gvar.newTileReady = true;
 	gvar.acceptingInput = true;
 
+	hud.gameField = game.add.graphics(0,0);
+	hud.gameField.beginFill(0x000000,0);
+	hud.gameField.lineStyle(2,0xffffff,1);
+	hud.gameField.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
+	hud.gameField.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
+	hud.gameField.endFill();
+
+	hud.gameFieldMask = game.add.graphics(0,0);
+	hud.gameFieldMask.beginFill(0x000000,0);
+	hud.gameFieldMask.lineStyle(2,0xffffff,1);
+	hud.gameFieldMask.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
+	hud.gameFieldMask.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
+	hud.gameFieldMask.endFill();
+
 	hud.scoreText = game.add.bitmapText(32,32,'arcadefont','score: ',20);
 	hud.levelText = game.add.bitmapText(32,56,'arcadefont','level: ',20);
 
@@ -495,6 +541,7 @@ function create() {
 	keyright.onDown.add(processInput, this, 0, 'right');
 	var keydown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
 	keydown.onDown.add(processInput, this, 0, 'down');
+	game.input.onDown.add(processInput, this, 0, 'touch');
 }
 
 function getRandomType(){
