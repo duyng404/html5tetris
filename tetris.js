@@ -2,6 +2,16 @@
 function sortNumber(a,b) {
     return a - b;
 }
+// helper function to shuffle elements of an array
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+}
 
 // tile types
 const ITILE=0; const JTILE=1; const LTILE=2; const OTILE=3; const STILE=4; const TTILE=5; const ZTILE=6;
@@ -91,6 +101,14 @@ var aTile = {
 	state: 0
 };
 
+// ghost Tile
+var gTile = {
+	sq: [],
+	sc: [],
+	x: 0,
+	y: 0
+}
+
 // current game board
 var board = [ // 10x16, one extra line on top for spawning
 	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -147,8 +165,8 @@ function drawASquare(x, y, color){
 
 function placeASquare(x, y, type){
 	// the "real" coordinate in pixels
-	var rx = gvar.xBoard+(x*gvar.wTile)+1;
-	var ry = gvar.yBoard+(y*gvar.wTile)+1;
+	var rx = gvar.xBoard+(x*gvar.wTile);
+	var ry = gvar.yBoard+(y*gvar.wTile);
 	var a = game.add.sprite(rx,ry, texture[type]);
 	//console.log(a);
 	return a;
@@ -178,6 +196,38 @@ function transformTile(){
 	}
 }
 
+function updateGhost(){
+	// if ghost doesn't exist, create it
+	if (gTile.sq.length == 0){
+		for (var i=0; i<aTile.sq.length; i++){
+			var newx = aTile.x + aTile.sc[i][0];
+			var newy = aTile.y + aTile.sc[i][1];
+			gTile.sq.push(placeASquare(newx,newy,aTile.type));
+			gTile.sq[i].alpha=0.2;
+		}
+		gTile.sc = aTile.sc.slice();
+	}
+	// if ghost did exist, move it back to same place as active tile
+	else {
+		for (var i=0; i<aTile.sq.length; i++){
+			gTile.sq[i].x = aTile.sq[i].x;
+			gTile.sq[i].y = aTile.sq[i].y;
+		}
+		gTile.sc = aTile.sc.slice();
+	}
+	gTile.x = aTile.x;
+	gTile.y = aTile.y;
+	var count=0;
+	while(itsOkayToGoDown(gTile)){
+		gTile.y+=1;
+		count+=1;
+	}
+	// move the tiles
+	for (let tile of gTile.sq){
+		tile.y += count * gvar.wTile;
+	}
+}
+
 function moveLeft(){
 	// can we really move left?
 	for (var i=0; i<aTile.sc.length; i++){
@@ -189,6 +239,7 @@ function moveLeft(){
 	// ok so we do, let's move left
 	aTile.x-=1;
 	transformTile();
+	updateGhost();
 }
 
 function moveRight(){
@@ -202,6 +253,7 @@ function moveRight(){
 	// ok so we do, let's move right
 	aTile.x+=1;
 	transformTile();
+	updateGhost();
 }
 
 function rotateRight(){
@@ -225,12 +277,13 @@ function rotateRight(){
 	aTile.sc = newsc.slice();
 	aTile.state = newstate;
 	transformTile();
+	updateGhost();
 }
 
-function itsOkayToGoDown(){
-	for (var i=0; i<aTile.sc.length; i++){
-		var newx = aTile.x + aTile.sc[i][0];
-		var newy = aTile.y + aTile.sc[i][1];
+function itsOkayToGoDown(theTile){
+	for (var i=0; i<theTile.sc.length; i++){
+		var newx = theTile.x + theTile.sc[i][0];
+		var newy = theTile.y + theTile.sc[i][1];
 		if (newy+1 > gvar.hBoard || board[newx][newy+1] == 1) return false;
 	}
 	return true;
@@ -323,7 +376,7 @@ function commit(){
 	gvar.acceptingInput = false;
 	// keep on lowering the active tile until cannot do it anymore
 	var count = 0;
-	while(itsOkayToGoDown()){
+	while(itsOkayToGoDown(aTile)){
 		aTile.y += 1;
 		count += 1;
 	}
@@ -341,6 +394,9 @@ function commit(){
 	while (aTile.sq.length > 0){
 		aTile.sq.pop().kill();
 		aTile.sc.pop();
+		// also the squares in ghost tile
+		gTile.sq.pop().kill();
+		gTile.sc.pop();
 	}
 	// remove any row if it is full
 	if (del.length>0) clearFull();
@@ -403,9 +459,10 @@ function getRandomType(){
 		stats[result]+=1;
 	} else {
 		// construct an array
-		var chance = [];
+		var chance = [0];
 		for (var i=0; i<7; i++)
 			for (var j=0; j< (max-stats[i]+1)+Math.floor((max-stats[i])*0.75); j++) chance.push(i);
+		shuffle(chance)
 		result = chance[Math.floor(Math.random() * chance.length)];
 		stats[result]+=1;
 		console.log(stats,chance,result);
@@ -419,6 +476,7 @@ function update() {
 		//var type = Math.floor(Math.random() * 7);
 		var type = getRandomType();
 		makeNewTile(type);
+		updateGhost();
 	}
 }
 
