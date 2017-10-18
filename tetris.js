@@ -21,8 +21,8 @@ const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E,0xFF
 const STATE = [
 	// ITILE
 	[
-		[[0,0], [0,-1], [0,1], [0,2]],
-		[[0,0], [-1,0], [1,0], [2,0]]
+		[[0,0], [-1,0], [1,0], [2,0]],
+		[[0,0], [0,-1], [0,1], [0,2]]
 	],
 	// JTILE
 	[
@@ -85,7 +85,13 @@ var gvar = {
 	// accepting input or not
 	acceptingInput: false,
 	// difficultyTimer, changes accordingly as level increases
-	diffTimer: 1500
+	diffTimer: 1500,
+	// current level
+	level: 1,
+	// current score
+	score: 0,
+	// back-to-back clearing should award more points
+	justScored: false
 };
 
 // active Tile
@@ -139,12 +145,16 @@ var texture = [];
 // statistics of how many tiles have created so far
 var stats = [0,0,0,0,0,0,0];
 
+// texts and information display in the game
+var hud = {};
+
 window.onload = function(){
     // creation of the game itself
 	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 }
 
 function preload() {
+	game.load.bitmapFont('arcadefont','./arcadefont.png','./arcadefont.fnt');
 	// resize so it fits the screen
 	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 }
@@ -402,6 +412,7 @@ function commit(){
 		aTile.y += 1;
 		count += 1;
 	}
+	gvar.score+=count;
 	// now we create new textures in the same place
 	for (var i=0; i<aTile.sq.length; i++){
 		var newx = aTile.x + aTile.sc[i][0];
@@ -421,9 +432,19 @@ function commit(){
 		gTile.sc.pop();
 	}
 	// remove any row if it is full
-	if (del.length>0) clearFull();
+	if (del.length>0){
+		// reward the player with points for clearing rows
+		if (del.length == 1) gvar.score += 100;
+		if (del.length == 2) gvar.score += 300;
+		if (del.length == 3) gvar.score += 500;
+		if (del.length == 4) gvar.score += 800;
+		if (gvar.justScored) gvar.score += 500;
+		gvar.justScored = true;
+		clearFull();
+	}
 	// ready to make a new tile
 	else {
+		gvar.justScored = false;
 		gvar.newTileReady = true;
 		gvar.acceptingInput = true;
 	}
@@ -463,6 +484,9 @@ function create() {
 	gvar.newTileReady = true;
 	gvar.acceptingInput = true;
 
+	hud.scoreText = game.add.bitmapText(32,32,'arcadefont','score: ',20);
+	hud.levelText = game.add.bitmapText(32,56,'arcadefont','level: ',20);
+
 	var keyup = game.input.keyboard.addKey(Phaser.Keyboard.UP);
 	keyup.onDown.add(processInput, this, 0, 'up');
 	var keyleft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
@@ -487,7 +511,6 @@ function getRandomType(){
 		shuffle(chance)
 		result = chance[Math.floor(Math.random() * chance.length)];
 		stats[result]+=1;
-		console.log(stats,chance,result);
 	}
 	return result;
 }
@@ -500,6 +523,9 @@ function update() {
 		makeNewTile(type);
 		updateGhost();
 	}
+
+	hud.scoreText.text = 'score: ' + gvar.score;
+	hud.levelText.text = 'level: ' + gvar.level;
 }
 
 function render() {
