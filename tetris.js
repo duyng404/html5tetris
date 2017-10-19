@@ -93,8 +93,10 @@ var gvar = {
 		yPause: 500,
 		xTut: 0,
 		yTut: 0,
-		xTutText: 20,
-		yTutText: 350
+		xTutText: 30,
+		yTutText: 350,
+		xTouchButton: 50,
+		yTouchButton: 600
 	},
 	// tile size
 	wTile: 50,
@@ -557,6 +559,11 @@ function processInput(context,s){
 	} else if (arguments[1] == 'esc'){
 		togglePause();
 		return;
+	} else if (arguments[1] == 'enter'){
+		if (gvar.firstTile){
+			startGame();
+			return;
+		}
 	} else if (arguments[2] == 'touch'){
 		if (gvar.firstTile){
 			startGame();
@@ -588,8 +595,9 @@ function processInput(context,s){
 }
 
 function startGame(){
-	hud.tutorial.destroy();
-	hud.tutText.destroy();
+	if (hud.tutorial) hud.tutorial.destroy();
+	if (hud.tutText) hud.tutText.destroy();
+	if (hud.touchButton) hud.touchButton.destroy();
 	game.pause = false;
 
 	gvar.newTileReady = true;
@@ -617,7 +625,7 @@ function startGame(){
 	hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
 	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
 	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'arcadefont','score:   ',15);
-	hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: ',15);
+	hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: ---',15);
 	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'arcadefont','-- paused --',30);
 	hud.pauseText.visible = false;
 
@@ -644,14 +652,33 @@ function create() {
 	gvar.newTileReady = false;
 	gvar.acceptingInput = false;
 
-	hud.tutorial = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'tutoverlay');
-	hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','welcome to tetris!\n\nkeyboard controls:\nup-down-left-right-esc\n\ntouch controls as shown\n\ntap or click anywhere to start',15);
+	hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','welcome to tetris!\n\nkeyboard controls:\n\nup - rotate\nleft - left\nright - right\ndown - lock in\nesc - pause\n\npress enter to start game',15);
+	hud.touchButton = game.add.bitmapText(gvar.hudPos.xTouchButton,gvar.hudPos.yTouchButton,'arcadefont','or tap\n-here-\nto see touch controls',15);
 	hud.tutText.align = 'center';
-	//hud.tutorial.reset();
+	hud.touchButton.align = 'center';
+
+	hud.touchButtonReal = game.add.graphics(0,0);
+	hud.touchButtonReal.beginFill(0x000000,0);
+	hud.touchButtonReal.lineStyle(0,0,0);
+	hud.touchButtonReal.moveTo(0,gvar.hudPos.yTouchButton);
+	hud.touchButtonReal.lineTo(0,1000);
+	hud.touchButtonReal.lineTo(1000,1000);
+	hud.touchButtonReal.lineTo(1000,gvar.hudPos.yTouchButton);
+	hud.touchButtonReal.endFill();
+
+	hud.touchButtonReal.inputEnabled = true;
+	hud.touchButtonReal.events.onInputUp.add(function(){
+		hud.tutText.destroy();
+		hud.tutorial = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'tutoverlay');
+		hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','touch anywhere to start game',15);
+		game.input.onDown.add(processInput, this, 0, 'touch');
+		hud.touchButton.destroy();
+		hud.touchButtonReal.destroy();
+	});
 
 	game.pause = true;
-
-	game.input.onDown.add(processInput, this, 0, 'touch');
+	var keyenter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
+	keyenter.onDown.add(processInput, this, 0, 'enter');
 }
 
 function getRandomType(){
