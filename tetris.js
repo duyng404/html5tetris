@@ -491,6 +491,22 @@ function clearFull(){
 }
 
 function updateLevel(){
+	if (gvar.score < 3000){ gvar.level=1; gvar.scoreMulti=1; gvar.diffTimer=1500; }
+	else if (gvar.score < 6000){ gvar.level=2; gvar.scoreMulti=1; gvar.diffTimer=1000; }
+	else if (gvar.score < 11000){ gvar.level=3; gvar.scoreMulti=2; gvar.diffTimer=750; }
+	else if (gvar.score < 16000){ gvar.level=4; gvar.scoreMulti=2; gvar.diffTimer=650; }
+	else if (gvar.score < 22000){ gvar.level=5; gvar.scoreMulti=3; gvar.diffTimer=600; }
+	else if (gvar.score < 27000){ gvar.level=6; gvar.scoreMulti=3; gvar.diffTimer=550; }
+	else if (gvar.score < 34000){ gvar.level=7; gvar.scoreMulti=4; gvar.diffTimer=500; }
+	else if (gvar.score < 41000){ gvar.level=8; gvar.scoreMulti=4; gvar.diffTimer=450; }
+	else if (gvar.score < 49000){ gvar.level=9; gvar.scoreMulti=5; gvar.diffTimer=400; }
+	else if (gvar.score < 60000){ gvar.level=10; gvar.scoreMulti=5; gvar.diffTimer=350; }
+	else {
+		gvar.level = Math.floor((gvar.score-60000)/10000+11);
+		gvar.scoreMulti = 6;
+		gvar.diffTimer = 300;
+	}
+
 	if (gvar.score < 2000){ gvar.level=1; gvar.scoreMulti=1; gvar.diffTimer=1500; }
 	else if (gvar.score < 4000){ gvar.level=2; gvar.scoreMulti=1; gvar.diffTimer=1000; }
 	else if (gvar.score < 7000){ gvar.level=3; gvar.scoreMulti=2; gvar.diffTimer=750; }
@@ -502,7 +518,7 @@ function updateLevel(){
 	else if (gvar.score < 34000){ gvar.level=9; gvar.scoreMulti=5; gvar.diffTimer=400; }
 	else if (gvar.score < 40000){ gvar.level=10; gvar.scoreMulti=5; gvar.diffTimer=350; }
 	else {
-		gvar.level = Math.floor((gvar.score-40000)/7000);
+		gvar.level = Math.floor((gvar.score-40000)/7000+11);
 		gvar.scoreMulti = 6;
 		gvar.diffTimer = 300;
 	}
