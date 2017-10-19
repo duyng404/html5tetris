@@ -456,7 +456,7 @@ function refreshBoard(){
 		for (var i=0; i<gvar.wBoard; i++){
 			// remove the texture
 			board[i][therow] = 0;
-			tBoard[i][therow].kill();
+			tBoard[i][therow].destroy();
 			delete tBoard[i][therow];
 		}
 		// move everything down one row
@@ -546,10 +546,10 @@ function commit(){
 	}
 	// delete all the squares in active tile
 	while (aTile.sq.length > 0){
-		aTile.sq.pop().kill();
+		aTile.sq.pop().destroy();
 		aTile.sc.pop();
 		// also the squares in ghost tile
-		gTile.sq.pop().kill();
+		gTile.sq.pop().destroy();
 		gTile.sc.pop();
 	}
 	// remove any row if it is full
@@ -799,19 +799,26 @@ function create() {
 
 function getRandomType(){
 	var result = 0;
-	var max = Math.max.apply(Math,stats);
-	if (max == 0){
-		result = Math.floor(Math.random() * 7);
-		stats[result]+=1;
-	} else {
-		// construct an array
-		var chance = [ITILE,ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE];
-		//for (var i=0; i<7; i++)
-		//	for (var j=0; j< (max-stats[i]+1)+Math.floor((max-stats[i])*0.75); j++) chance.push(i);
-		shuffle(chance);
-		result = chance[Math.floor(Math.random() * chance.length)];
-		stats[result]+=1;
+	//var max = Math.max.apply(Math,stats);
+	// construct an array
+	if (gvar.level < 5) { var chance = [ITILE,ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
+	else if (gvar.level < 12) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
+	else if (gvar.level < 15) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
+	else if (gvar.level < 20){ var chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
+	else { var chance = [ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
+	//for (var i=0; i<7; i++)
+	//	for (var j=0; j< (max-stats[i]+1)+Math.floor((max-stats[i])*0.75); j++) chance.push(i);
+	// make sure no same tile consecutively (only if level is < 7)
+	if (gvar.level < 8){
+		for (var i=0; i<chance.length; i++){
+			while (chance[i] == aTile.type){
+				chance.splice(i,1);
+			}
+		}
 	}
+	shuffle(chance);
+	result = chance[Math.floor(Math.random() * chance.length)];
+	stats[result]+=1;
 	return result;
 }
 
