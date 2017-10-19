@@ -474,13 +474,13 @@ function clearFull(){
 
 function updateLevel(){
 	gvar.level = Math.floor(gvar.score / 3000) + 1;
-	if (gvar.level == 1) diffTimer = 1500;
-	else if (gvar.level == 2) diffTimer = 1200;
-	else if (gvar.level == 3) diffTimer = 900;
-	else if (gvar.level == 4) diffTimer = 750;
-	else if (gvar.level == 5) diffTimer = 650;
-	else if (gvar.level == 6) diffTimer = 575;
-	else diffTimer = 500;
+	if (gvar.level == 1) gvar.diffTimer = 1500;
+	else if (gvar.level == 2) gvar.diffTimer = 1200;
+	else if (gvar.level == 3) gvar.diffTimer = 900;
+	else if (gvar.level == 4) gvar.diffTimer = 750;
+	else if (gvar.level == 5) gvar.diffTimer = 650;
+	else if (gvar.level == 6) gvar.diffTimer = 575;
+	else gvar.diffTimer = 500;
 }
 
 function commit(){
