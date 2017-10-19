@@ -93,10 +93,12 @@ var gvar = {
 		yPause: 500,
 		xTut: 0,
 		yTut: 0,
-		xTutText: 30,
+		xTutText: 70,
 		yTutText: 350,
-		xTouchButton: 50,
-		yTouchButton: 600
+		xTouchButton: 90,
+		yTouchButton: 600,
+		xGameOver: 90,
+		yGameOver: 15
 	},
 	// tile size
 	wTile: 50,
@@ -259,7 +261,10 @@ function makeNewTile(){
 	aTile.sc = STATE[aTile.type][0].slice();
 	// put squares on screen according to the blueprint
 	for (var i=0; i<aTile.sc.length; i++){
-		aTile.sq.push(placeASquare(gvar.xSpawn + aTile.sc[i][0], gvar.ySpawn + aTile.sc[i][1], aTile.type));
+		var newx = gvar.xSpawn + aTile.sc[i][0];
+		var newy = gvar.ySpawn + aTile.sc[i][1];
+		if (board[newx][newy] == 1) { gameOver(); break; }
+		aTile.sq.push(placeASquare(newx, newy, aTile.type));
 		aTile.sq[i].mask = hud.gameFieldMask;
 	}
 	// other params
@@ -519,8 +524,12 @@ function commit(){
 		updateLevel();
 		clearFull();
 	}
-	// ready to make a new tile
 	else {
+		// end game condition
+		for (var i=0; i<gvar.wBoard; i++){
+			if (board[i][1] == 1) gameOver();
+		}
+		// ready to make a new tile
 		gvar.justScored = false;
 		gvar.newTileReady = true;
 		gvar.acceptingInput = true;
@@ -717,6 +726,20 @@ function update() {
 		hud.scoreText.text = 'score:   ' + gvar.score;
 		hud.levelText.text = 'level:   ' + gvar.level;
 	}
+}
+
+function gameOver(){
+	togglePause();
+	gvar.newTileReady = false;
+	hud.scoreText.destroy();
+	hud.levelText.destroy();
+	hud.nextText.destroy();
+	hud.highText.destroy();
+	hud.pauseText.destroy();
+	for (let i of nTile.sq) i.kill();
+	hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nrefresh page to replay',15);
+	hud.gameOverText.align = 'center';
+	hud.tutText.align = 'center';
 }
 
 function render() {
