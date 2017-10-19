@@ -70,12 +70,32 @@ var gvar = {
 	// spawn position
 	xSpawn: 4,
 	ySpawn: 1,
+	// next tile position, in real pixels
+	xNext: 70,
+	yNext: 35,
 	// board sizes
 	wBoard: 10,
 	hBoard: 17,
 	// top left corner of board (in pixels)
 	xBoard: 0,
 	yBoard: 100,
+	// position of HUD elements
+	hudPos: {
+		xNext: 20,
+		yNext: 7,
+		xScore: 230,
+		yScore: 25,
+		xLevel: 230,
+		yLevel: 60,
+		xHigh: 230,
+		yHigh: 95,
+		xPause: 75,
+		yPause: 500,
+		xTut: 0,
+		yTut: 0,
+		xTutText: 20,
+		yTutText: 350
+	},
 	// tile size
 	wTile: 50,
 	// ready to make a new tile or not
@@ -91,8 +111,17 @@ var gvar = {
 	// current score
 	score: 0,
 	// back-to-back clearing should award more points
-	justScored: false
+	justScored: false,
+	// is this the first tile ever?
+	firstTile: true
 };
+
+// next Tile
+var nTile = {
+	sq: [],
+	sc: [],
+	type: 0,
+}
 
 // active Tile
 var aTile = {
@@ -158,13 +187,18 @@ window.onload = function(){
 	var difference = newWidth - gvar.gameWidth;
 	gvar.gameWidth = newWidth;
 	gvar.xBoard += difference / 2;
-	console.log(difference, gvar.xBoard);
+	gvar.xNext += difference / 2;
+	for (var i in gvar.hudPos){
+		if (i.startsWith('x'))
+			gvar.hudPos[i] += difference / 2;
+	}
     // creation of the game itself
 	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 }
 
 function preload() {
 	game.load.bitmapFont('arcadefont','./arcadefont.png','./arcadefont.fnt');
+	game.load.image('tutoverlay','./tutorial.png');
 	// resize so it fits the screen
 	game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 }
@@ -192,22 +226,42 @@ function placeASquare(x, y, type){
 	var rx = gvar.xBoard+(x*gvar.wTile);
 	var ry = gvar.yBoard+(y*gvar.wTile);
 	var a = game.add.sprite(rx,ry, texture[type]);
-	//console.log(a);
 	return a;
 	//return agame.add.sprite(rx,ry, texture[type]);
 }
 
-function makeNewTile(type){
+function updateNextTile(type){
 	// get the first state of that type
-	aTile.sc = STATE[type][0].slice();
+	nTile.sc = STATE[type][0].slice();
+	// if this is the first tile, just populate sq
+	if (gvar.firstTile){
+		for (var i=0; i<nTile.sc.length; i++){
+			nTile.sq.push(placeASquare(0,0,type));
+		}
+	}
+	// replace the texture with the correct one
+	for (var i=0; i<nTile.sq.length; i++){
+		nTile.sq[i].loadTexture(texture[type]);
+		// also reposition it
+		nTile.sq[i].x = gvar.xNext + nTile.sc[i][0] * gvar.wTile;
+		nTile.sq[i].y = gvar.yNext + nTile.sc[i][1] * gvar.wTile;
+	}
+	// update the type
+	nTile.type = type;
+}
+
+function makeNewTile(){
+	// get the type from next tile
+	aTile.type = nTile.type;
+	// get the first state of that type
+	aTile.sc = STATE[aTile.type][0].slice();
 	// put squares on screen according to the blueprint
 	for (var i=0; i<aTile.sc.length; i++){
-		aTile.sq.push(placeASquare(gvar.xSpawn + aTile.sc[i][0], gvar.ySpawn + aTile.sc[i][1], type));
+		aTile.sq.push(placeASquare(gvar.xSpawn + aTile.sc[i][0], gvar.ySpawn + aTile.sc[i][1], aTile.type));
 		aTile.sq[i].mask = hud.gameFieldMask;
 	}
 	// other params
 	aTile.state = 0;
-	aTile.type = type;
 	aTile.x = gvar.xSpawn;
 	aTile.y = gvar.ySpawn;
 	// attach a timer
@@ -301,7 +355,6 @@ function moveRight(){
 function rotateRight(){
 	// precalculate the new position after rotate
 	var newx = aTile.x; var newy = aTile.y;
-	//console.log(type,STATE);
 	var newstate = (aTile.state + 1) % STATE[aTile.type].length;
 	var newsc = STATE[aTile.type][newstate].slice();
 	// bound check. If it goes outside after rotate, nudge it back
@@ -347,7 +400,6 @@ function checkRowFull(y){
 // color1 and color2 are index of COLOR array
 function flashTexture(x,y,color1,color2,callback){
 	var timer = game.time.create(false);
-	//console.log(color1,color2,tBoard);
 	var count = 0;
 	timer.repeat(100,4,function(timer){
 		if (count % 2 == 0){
@@ -387,7 +439,6 @@ function refreshBoard(){
 			for (var j=0; j<gvar.wBoard; j++){
 				board[j][i] = board[j][i-1];
 				tBoard[j][i] = tBoard[j][i-1];
-				//console.log(i,j)
 				if (tBoard[j][i]){
 					tBoard[j][i].x = gvar.xBoard + gvar.wTile * j;
 					tBoard[j][i].y = gvar.yBoard + gvar.wTile * i;
@@ -412,6 +463,17 @@ function clearFull(){
 			flashTexture(i,therow,texture.length-1,texture.length-2,refreshBoard);
 		}
 	}
+}
+
+function updateLevel(){
+	gvar.level = Math.floor(gvar.score / 3000) + 1;
+	if (gvar.level == 1) diffTimer = 1500;
+	else if (gvar.level == 2) diffTimer = 1200;
+	else if (gvar.level == 3) diffTimer = 900;
+	else if (gvar.level == 4) diffTimer = 750;
+	else if (gvar.level == 5) diffTimer = 650;
+	else if (gvar.level == 6) diffTimer = 575;
+	else diffTimer = 500;
 }
 
 function commit(){
@@ -449,8 +511,10 @@ function commit(){
 		if (del.length == 2) gvar.score += 300;
 		if (del.length == 3) gvar.score += 500;
 		if (del.length == 4) gvar.score += 800;
-		if (gvar.justScored) gvar.score += 500;
+		if (gvar.justScored) gvar.score += 250;
 		gvar.justScored = true;
+		// update the level
+		updateLevel();
 		clearFull();
 	}
 	// ready to make a new tile
@@ -458,6 +522,18 @@ function commit(){
 		gvar.justScored = false;
 		gvar.newTileReady = true;
 		gvar.acceptingInput = true;
+	}
+}
+
+function togglePause(){
+	if (game.paused){
+		game.paused = false;
+		hud.pauseText.visible = false;
+		gvar.acceptingInput = true;
+	} else {
+		game.paused = true;
+		hud.pauseText.visible = true;
+		gvar.acceptingInput = false;
 	}
 }
 
@@ -478,16 +554,26 @@ function processInput(context,s){
 		if (gvar.acceptingInput)
 			commit();
 		return;
+	} else if (arguments[1] == 'esc'){
+		togglePause();
+		return;
 	} else if (arguments[2] == 'touch'){
-		if (game.paused) game.paused = false;
+		if (gvar.firstTile){
+			startGame();
+			return;
+		}
+		if (game.paused){
+			togglePause();
+			return;
+		}
 		if (gvar.acceptingInput){
 			px = arguments[0].x;
 			py = arguments[0].y;
-			if (py / game.height < 0.2){
-				game.paused = true;
-			} else if (py / game.height < 0.4){
+			if (py / game.height < 0.16){
+				togglePause();
+			} else if (py / game.height < 0.5){
 				rotateRight();
-			} else if (py / game.height < 0.7){
+			} else if (py / game.height < 0.8){
 				if (px / game.width < 0.5) moveLeft();
 				else moveRight();
 			} else {
@@ -501,13 +587,10 @@ function processInput(context,s){
 	}
 }
 
-function create() {
-	// generate all the texture
-	for (var i=0; i<COLOR.length; i++){
-		var tmp = drawASquare(0,0,COLOR[i]);
-		texture.push(tmp.generateTexture());
-		tmp.destroy();
-	}
+function startGame(){
+	hud.tutorial.destroy();
+	hud.tutText.destroy();
+	game.pause = false;
 
 	gvar.newTileReady = true;
 	gvar.acceptingInput = true;
@@ -530,8 +613,13 @@ function create() {
 	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
 	hud.gameFieldMask.endFill();
 
-	hud.scoreText = game.add.bitmapText(32,32,'arcadefont','score: ',20);
-	hud.levelText = game.add.bitmapText(32,56,'arcadefont','level: ',20);
+
+	hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
+	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
+	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'arcadefont','score:   ',15);
+	hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: ',15);
+	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'arcadefont','-- paused --',30);
+	hud.pauseText.visible = false;
 
 	var keyup = game.input.keyboard.addKey(Phaser.Keyboard.UP);
 	keyup.onDown.add(processInput, this, 0, 'up');
@@ -541,6 +629,28 @@ function create() {
 	keyright.onDown.add(processInput, this, 0, 'right');
 	var keydown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
 	keydown.onDown.add(processInput, this, 0, 'down');
+	var keyesc = game.input.keyboard.addKey(Phaser.Keyboard.ESC);
+	keyesc.onDown.add(processInput, this, 0, 'esc');
+}
+
+function create() {
+	// generate all the texture
+	for (var i=0; i<COLOR.length; i++){
+		var tmp = drawASquare(0,0,COLOR[i]);
+		texture.push(tmp.generateTexture());
+		tmp.destroy();
+	}
+
+	gvar.newTileReady = false;
+	gvar.acceptingInput = false;
+
+	hud.tutorial = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'tutoverlay');
+	hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','welcome to tetris!\n\nkeyboard controls:\nup-down-left-right-esc\n\ntouch controls as shown\n\ntap or click anywhere to start',15);
+	hud.tutText.align = 'center';
+	//hud.tutorial.reset();
+
+	game.pause = true;
+
 	game.input.onDown.add(processInput, this, 0, 'touch');
 }
 
@@ -552,7 +662,7 @@ function getRandomType(){
 		stats[result]+=1;
 	} else {
 		// construct an array
-		var chance = [0];
+		var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE];
 		for (var i=0; i<7; i++)
 			for (var j=0; j< (max-stats[i]+1)+Math.floor((max-stats[i])*0.75); j++) chance.push(i);
 		shuffle(chance)
@@ -564,15 +674,22 @@ function getRandomType(){
 
 function update() {
 	if (gvar.newTileReady){
+		if (gvar.firstTile){
+			var type = getRandomType();
+			updateNextTile(type);
+			gvar.firstTile = false;
+		}
 		gvar.newTileReady = false;
-		//var type = Math.floor(Math.random() * 7);
+		makeNewTile();
 		var type = getRandomType();
-		makeNewTile(type);
+		updateNextTile(type);
 		updateGhost();
 	}
 
-	hud.scoreText.text = 'score: ' + gvar.score;
-	hud.levelText.text = 'level: ' + gvar.level;
+	if (!gvar.firstTile){
+		hud.scoreText.text = 'score:   ' + gvar.score;
+		hud.levelText.text = 'level:   ' + gvar.level;
+	}
 }
 
 function render() {
