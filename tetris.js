@@ -65,40 +65,43 @@ var game;
 // global variables
 var gvar = {
     // game sizes
-    gameWidth: 500,
+    gameWidth: 600,
 	gameHeight: 1000,
 	// spawn position
 	xSpawn: 4,
 	ySpawn: 1,
 	// next tile position, in real pixels
-	xNext: 70,
+	xNext: 120,
 	yNext: 35,
 	// board sizes
 	wBoard: 10,
 	hBoard: 17,
 	// top left corner of board (in pixels)
-	xBoard: 0,
+	xBoard: 50,
 	yBoard: 100,
 	// position of HUD elements
 	hudPos: {
-		xNext: 20,
+		xNext: 70,
 		yNext: 7,
-		xScore: 230,
+		xScore: 280,
 		yScore: 25,
-		xLevel: 230,
+		xLevel: 280,
 		yLevel: 60,
-		xHigh: 230,
+		xHigh: 280,
 		yHigh: 95,
-		xPause: 75,
+		xPause: 125,
 		yPause: 500,
-		xTut: 0,
+		xTut: 50,
 		yTut: 0,
-		xTutText: 70,
+		xTutText: 120,
 		yTutText: 350,
-		xTouchButton: 90,
+		xTouchButton: 140,
 		yTouchButton: 600,
-		xGameOver: 90,
-		yGameOver: 15
+		xGameOver: 140,
+		yGameOver: 15,
+		yControlPause: 160,
+		yControlRotate: 650,
+		yControlLR: 900
 	},
 	// tile size
 	wTile: 50,
@@ -189,14 +192,27 @@ window.onload = function(){
 	var windowHeight = window.innerHeight;
 	var ratio = windowWidth / windowHeight;
 	var newWidth = gvar.gameWidth;
-	if (ratio > 0.5) newWidth = gvar.gameHeight * ratio;
-	var difference = newWidth - gvar.gameWidth;
-	gvar.gameWidth = newWidth;
-	gvar.xBoard += difference / 2;
-	gvar.xNext += difference / 2;
-	for (var i in gvar.hudPos){
-		if (i.startsWith('x'))
-			gvar.hudPos[i] += difference / 2;
+	if (ratio > gvar.gameWidth / gvar.gameHeight){
+		newWidth = gvar.gameHeight * ratio;
+		var difference = newWidth - gvar.gameWidth;
+		gvar.gameWidth = newWidth;
+		gvar.xBoard += difference / 2;
+		gvar.xNext += difference / 2;
+		for (var i in gvar.hudPos){
+			if (i.startsWith('x'))
+				gvar.hudPos[i] += difference / 2;
+		}
+	}
+	if (ratio < gvar.gameWidth / gvar.gameHeight){
+		newHeight = gvar.gameWidth / ratio;
+		var difference = newHeight - gvar.gameHeight;
+		gvar.gameHeight = newHeight;
+		gvar.yBoard += difference / 2;
+		gvar.yNext += difference / 2;
+		for (var i in gvar.hudPos){
+			if (i.startsWith('y'))
+				gvar.hudPos[i] += difference / 2;
+		}
 	}
     // creation of the game itself
 	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
@@ -584,6 +600,7 @@ function processInput(context,s){
 		}
 	} else if (arguments[2] == 'touch'){
 		if (gvar.firstTile){
+			touchGuide();
 			startGame();
 			return;
 		}
@@ -594,11 +611,11 @@ function processInput(context,s){
 		if (gvar.acceptingInput){
 			px = arguments[0].x;
 			py = arguments[0].y;
-			if (py / game.height < 0.16){
+			if (py < gvar.hudPos.yControlPause){
 				togglePause();
-			} else if (py / game.height < 0.5){
+			} else if (py < gvar.hudPos.yControlRotate){
 				rotateRight();
-			} else if (py / game.height < 0.8){
+			} else if (py < gvar.hudPos.yControlLR){
 				if (px / game.width < 0.5) moveLeft();
 				else moveRight();
 			} else {
@@ -610,6 +627,71 @@ function processInput(context,s){
 		console.log('Unhandled input:',arguments);
 		return;
 	}
+}
+
+function touchGuide(){
+	hud.line1 = game.add.graphics(0,0);
+	hud.line1.beginFill(0x000000,0);
+	hud.line1.lineStyle(2,0xffffff,1);
+	hud.line1.moveTo(gvar.xBoard-50,gvar.hudPos.yControlPause);
+	hud.line1.lineTo(gvar.xBoard,gvar.hudPos.yControlPause);
+	hud.line1.endFill();
+
+	hud.line2 = game.add.graphics(0,0);
+	hud.line2.beginFill(0x000000,0);
+	hud.line2.lineStyle(2,0xffffff,1);
+	hud.line2.moveTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.hudPos.yControlPause);
+	hud.line2.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile+50,gvar.hudPos.yControlPause);
+	hud.line2.endFill();
+
+	hud.line3 = game.add.graphics(0,0);
+	hud.line3.beginFill(0x000000,0);
+	hud.line3.lineStyle(2,0xffffff,1);
+	hud.line3.moveTo(gvar.xBoard-50,gvar.hudPos.yControlLR);
+	hud.line3.lineTo(gvar.xBoard,gvar.hudPos.yControlLR);
+	hud.line3.endFill();
+
+	hud.line4 = game.add.graphics(0,0);
+	hud.line4.beginFill(0x000000,0);
+	hud.line4.lineStyle(2,0xffffff,1);
+	hud.line4.moveTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.hudPos.yControlLR);
+	hud.line4.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile+50,gvar.hudPos.yControlLR);
+	hud.line4.endFill();
+
+	hud.line5 = game.add.graphics(0,0);
+	hud.line5.beginFill(0x000000,0);
+	hud.line5.lineStyle(2,0xffffff,1);
+	hud.line5.moveTo(gvar.xBoard-50,gvar.hudPos.yControlRotate);
+	hud.line5.lineTo(gvar.xBoard,gvar.hudPos.yControlRotate);
+	hud.line5.endFill();
+
+	hud.line6 = game.add.graphics(0,0);
+	hud.line6.beginFill(0x000000,0);
+	hud.line6.lineStyle(2,0xffffff,1);
+	hud.line6.moveTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.hudPos.yControlRotate);
+	hud.line6.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile+50,gvar.hudPos.yControlRotate);
+	hud.line6.endFill();
+
+	hud.rotateText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlPause+100,'arcadefont','rotate',15);
+	hud.rotateText1.anchor.setTo(0,0);
+	hud.rotateText1.angle += 90;
+	hud.rotateText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlPause+100,'arcadefont','rotate',15);
+	hud.rotateText2.anchor.setTo(1,1);
+	hud.rotateText2.angle -= 90;
+
+	hud.leftText = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlRotate+100,'arcadefont','left',15);
+	hud.leftText.anchor.setTo(0,0);
+	hud.leftText.angle += 90;
+	hud.rightText = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlRotate+100,'arcadefont','right',15);
+	hud.rightText.anchor.setTo(1,1);
+	hud.rightText.angle -= 90;
+
+	hud.downText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlLR+25,'arcadefont','down',15);
+	hud.downText1.anchor.setTo(0,0);
+	hud.downText1.angle += 90;
+	hud.downText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlLR+25,'arcadefont','down',15);
+	hud.downText2.anchor.setTo(1,1);
+	hud.downText2.angle -= 90;
 }
 
 function startGame(){
@@ -638,7 +720,6 @@ function startGame(){
 	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
 	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
 	hud.gameFieldMask.endFill();
-
 
 	hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
 	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
@@ -671,7 +752,7 @@ function create() {
 	gvar.acceptingInput = false;
 
 	hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','welcome to tetris!\n\nkeyboard controls:\n\nup - rotate\nleft - left\nright - right\ndown - lock in\nesc - pause\n\npress enter to start game',15);
-	hud.touchButton = game.add.bitmapText(gvar.hudPos.xTouchButton,gvar.hudPos.yTouchButton,'arcadefont','or tap\n-here-\nto see touch controls',15);
+	hud.touchButton = game.add.bitmapText(gvar.hudPos.xTouchButton,gvar.hudPos.yTouchButton,'arcadefont','or tap\n-here-\nif you are on mobile',15);
 	hud.tutText.align = 'center';
 	hud.touchButton.align = 'center';
 
@@ -689,6 +770,7 @@ function create() {
 		hud.tutText.destroy();
 		hud.tutorial = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'tutoverlay');
 		hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','touch anywhere to start game',15);
+		hud.tutText.x -= 30;
 		game.input.onDown.add(processInput, this, 0, 'touch');
 		hud.touchButton.destroy();
 		hud.touchButtonReal.destroy();
