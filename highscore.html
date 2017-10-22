@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="highscorepage">
+<head>
+	<meta charset="UTF-8">
+	<title>Tetris | Anythingbut.me</title>
+	<base href="/">
+    <style type="text/css">
+        body {
+            margin: 0; background-color: white; overflow:hidden;
+        }
+		canvas { display: block; margin:auto;}
+    </style>
+	<meta property="og:image" content="./thumb.png"/>
+	<meta name="description" content="My attempt at recreating the classic Tetris Game. Written in HTML & Javascript using the Phaser game engine">
+	<meta name="keywords" content="Tetris,JS,JavaScript,HTML,Phaser,game,browser,mobile">
+	<meta name="author" content="Ferb Nguyen">
+	<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
+</head>
+<body>
+	<div ng-view></div>
+
+	<script src="node_modules/angular/angular.js"></script>
+	<script src="node_modules/angular-route/angular-route.js"></script>
+	<script src="node_modules/angular-jwt/dist/angular-jwt.js"></script>
+	<script src="./highscore.js"></script>
+</body>
+</html>

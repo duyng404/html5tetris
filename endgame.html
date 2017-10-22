@@ -1,0 +1,23 @@
+<p>dude pls help</p>
+<p id="score">{{ vm.score  }}</p>
+<p id="time">{{ vm.time  }}</p>
+
+<p>Enter your name for highscore</p>
+
+<form name="vm.nameInputForm" ng-submit="vm.addScore()">
+	<input type="text" placeholder="Enter name" ng-model="vm.nameField" autocapitalize="none">
+	<button type="submit">Save name</button>
+</form>
+
+{{ if (vm.weekly) }}
+<h2>Weekly highscore</h2>
+<ul>
+	<li ng-repeat="entry in vm.weekly">{{ entry.name }}: {{ entry.score }} at {{ entry.time }}</li>
+</ul>
+{{ endif }}
+
+{{ if (vm.alltime) }}
+<h2>All time highscore</h2>
+<ul>
+	<li ng-repeat="entry in vm.alltime">{{ entry.name }}: {{ entry.score }} at {{ entry.time }}</li>
+</ul>

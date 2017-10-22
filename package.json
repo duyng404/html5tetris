@@ -1,0 +1,29 @@
+{
+  "name": "html5tetris",
+  "version": "1.0.0",
+  "description": "My attempt at a tetris clone using html5 and js. Created using Phaser game engine.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferb96/html5tetris.git"
+  },
+  "author": "Ferb Nguyen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ferb96/html5tetris/issues"
+  },
+  "homepage": "https://github.com/ferb96/html5tetris#readme",
+  "dependencies": {
+    "angular": "^1.6.6",
+    "angular-jwt": "^0.1.9",
+    "angular-route": "^1.6.6",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "jsonfile": "^4.0.0",
+    "jsonwebtoken": "^8.1.0",
+    "ngstorage": "^0.3.11"
+  }
+}
