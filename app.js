@@ -77,26 +77,26 @@ function postHighScore(req,res){
 				var a = getLowest(weekly);
 				weekly.splice(a,1);
 			}
-			if (alltime.length < 20){
+			if (alltime.length == 10){
 				// get the lowest score
 				var minAlltime = getLowest(alltime);
 				// compare score
 				// if score is more, pop the lowest score, push the score
 				if (req.body.score > alltime[minAlltime].score){
 					alltime.splice(minAlltime,1);
-					alltime.push(newScore);
 				}
 			}
-			if (weekly.length < 10){
+			alltime.push(newScore);
+			if (weekly.length == 10){
 				// get the lowest score
 				var minWeekly = getLowest(weekly);
 				// compare score
 				// if score is more, pop the lowest score, push the score
 				if (req.body.score > weekly[minWeekly].score){
 					weekly.splice(minWeekly,1);
-					weekly.push(newScore);
 				}
 			}
+			weekly.push(newScore);
 			console.log(alltime.length,weekly.length);
 			var weeklyUpdated = obj.weeklyUpdated;
 			var newobj = {

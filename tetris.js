@@ -97,7 +97,7 @@ var gvar = {
 		yTutText: 350,
 		xTouchButton: 140,
 		yTouchButton: 600,
-		xGameOver: 140,
+		xGameOver: 70,
 		yGameOver: 15,
 		yControlPause: 160,
 		yControlRotate: 600,
@@ -839,7 +839,7 @@ function gameOver(){
 		hud.highText.destroy();
 		hud.pauseText.destroy();
 		for (let i of nTile.sq) i.kill();
-		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds ...',15);
+		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds',15);
 		hud.gameOverText.align = 'center';
 		hud.tutText.align = 'center';
 
