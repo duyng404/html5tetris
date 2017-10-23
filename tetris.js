@@ -97,6 +97,8 @@ var gvar = {
 		yTutText: 350,
 		xTouchButton: 140,
 		yTouchButton: 600,
+		xHSButton: 160,
+		yHSButton: 750,
 		xGameOver: 70,
 		yGameOver: 15,
 		yControlPause: 160,
@@ -767,19 +769,31 @@ function create() {
 	gvar.newTileReady = false;
 	gvar.acceptingInput = false;
 
+	hud.touchButtonReal = game.add.graphics(0,0);
+	hud.touchButtonReal.beginFill(0x000000);
+	hud.touchButtonReal.lineStyle(0,0,0);
+	hud.touchButtonReal.moveTo(gvar.hudPos.xTouchButton-400,gvar.hudPos.yTouchButton-50);
+	hud.touchButtonReal.lineTo(gvar.hudPos.xTouchButton-400,gvar.hudPos.yTouchButton+100);
+	hud.touchButtonReal.lineTo(gvar.hudPos.xTouchButton+800,gvar.hudPos.yTouchButton+100);
+	hud.touchButtonReal.lineTo(gvar.hudPos.xTouchButton+800,gvar.hudPos.yTouchButton-50);
+	hud.touchButtonReal.endFill();
+
+	hud.HSButtonReal = game.add.graphics(0,0);
+	hud.HSButtonReal.beginFill(0x000000);
+	hud.HSButtonReal.lineStyle(0,0,0);
+	hud.HSButtonReal.moveTo(gvar.hudPos.xHSButton-400,gvar.hudPos.yHSButton-50);
+	hud.HSButtonReal.lineTo(gvar.hudPos.xHSButton-400,gvar.hudPos.yHSButton+100);
+	hud.HSButtonReal.lineTo(gvar.hudPos.xHSButton+800,gvar.hudPos.yHSButton+100);
+	hud.HSButtonReal.lineTo(gvar.hudPos.xHSButton+800,gvar.hudPos.yHSButton-50);
+	hud.HSButtonReal.endFill();
+
 	hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','welcome to tetris!\n\nkeyboard controls:\n\nup - rotate\nleft - left\nright - right\ndown - lock in\nesc - pause\n\npress enter to start game',15);
 	hud.touchButton = game.add.bitmapText(gvar.hudPos.xTouchButton,gvar.hudPos.yTouchButton,'arcadefont','or tap\n-here-\nif you are on mobile',15);
+	hud.HSButton = game.add.bitmapText(gvar.hudPos.xHSButton,gvar.hudPos.yHSButton,'arcadefont','tap or click\n-here-\nto see highscores',15);
 	hud.tutText.align = 'center';
 	hud.touchButton.align = 'center';
+	hud.HSButton.align = 'center';
 
-	hud.touchButtonReal = game.add.graphics(0,0);
-	hud.touchButtonReal.beginFill(0x000000,0);
-	hud.touchButtonReal.lineStyle(0,0,0);
-	hud.touchButtonReal.moveTo(0,gvar.hudPos.yTouchButton);
-	hud.touchButtonReal.lineTo(0,1000);
-	hud.touchButtonReal.lineTo(1000,1000);
-	hud.touchButtonReal.lineTo(1000,gvar.hudPos.yTouchButton);
-	hud.touchButtonReal.endFill();
 
 	hud.touchButtonReal.inputEnabled = true;
 	hud.touchButtonReal.events.onInputUp.add(function(){
@@ -790,9 +804,22 @@ function create() {
 		game.input.onDown.add(processInput, this, 0, 'touch');
 		hud.touchButton.destroy();
 		hud.touchButtonReal.destroy();
-	});
+		hud.HSButton.destroy();
+		hud.HSButtonReal.destroy();
+	},this);
+
+	hud.HSButtonReal.inputEnabled = true;
+	hud.HSButtonReal.events.onInputUp.add(function(){
+		game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
+		window.location = "/highscore.html";
+		window.open('/highscore.html','_self');
+		game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
+		window.location = "http://tetris.anythingbut.me/highscore.html";
+		window.open('http://tetris.anythingbut.me/highscore.html','_self');
+	},this);
 
 	game.pause = true;
+	//game.input.mouse.capture = true;
 	var keyenter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 	keyenter.onDown.add(processInput, this, 0, 'enter');
 }
@@ -867,8 +894,6 @@ function gameOver(){
 		game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
 		window.location = "http://tetris.anythingbut.me/highscore.html";
 		window.open('http://tetris.anythingbut.me/highscore.html','_self');
-		window.setTimeout(function(){
-		}, 2000);
 	}
 }
 

@@ -85,6 +85,7 @@ function config($httpProvider, $routeProvider, $locationProvider) {
 
 function EndGameController($route,$window,$http,jwtHelper){
 	var vm = this;
+	vm.showInput = false;
 	vm.score = $window.localStorage.score;
 	vm.time = $window.localStorage.time;
 	vm.justPlayed = false;
@@ -114,6 +115,11 @@ function EndGameController($route,$window,$http,jwtHelper){
 	}).catch(function(error){
 		$window.sessionStorage.error = "There were some errors while trying to retrieve highscore from the server. Please try again or contact me if it gets too ugly. Here are some details: " + error;
 	});
+
+	vm.playAgain = function(){
+		$window.localStorage.clear();
+		$window.location.href='/';
+	}
 
 	vm.addScore = function(){
 		var token = jwtHelper.decodeToken($window.sessionStorage.token);

@@ -95,9 +95,8 @@ body{
 }
 
 #inputbox{
-	margin: 40px auto 60px auto;
+	margin: 40px auto 40px auto;
 	text-align: center;
-	font-size: 15px;
 	line-height:1.5em;
 }
 
@@ -137,6 +136,26 @@ body{
 #inputbox button:hover{
 	color:#ddd;
 	background-color:#222;
+}
+
+.nobutton{
+	display:inline;
+	background:none;
+	border:none;
+	padding:0;
+	text-decoration:none;
+	cursor:pointer;
+	color:#00b6ce;
+	font-family:inherit;
+	font-size:inherit;
+}
+
+.nobutton:visited{
+	color: #00B6CE;
+}
+
+.nobutton:hover{
+	color: #99c2ff;
 }
 
 .scoreboard{
@@ -215,6 +234,7 @@ a:hover{
 	text-transform: uppercase;
 	font-size: 1.5em;
 	color: #00b6ce;
+	margin: 2em auto 0 auto;
 }
 
 #info p{
