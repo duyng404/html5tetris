@@ -44,6 +44,12 @@
 			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
 		</div>
 	</div>
+	<p>Weekly scores will be reset {{ vm.nextUpdate }}</p>
+</div>
+
+<div class="scoreboard" ng-if="!vm.weekly">
+	<h2>WEEKLY HIGHSCORE</h2>
+	<p>There isn't any weekly scores (yet)!</p>
 </div>
 
 <div class="scoreboard" ng-if="vm.alltime">

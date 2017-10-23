@@ -150,6 +150,12 @@ body{
 	color: #00b6ce;
 }
 
+.scoreboard p{
+	text-align: center;
+	color: #aaa;
+	font-size: 0.9em;
+}
+
 .row{
 	display: flex;
 	justify-content: space-between;

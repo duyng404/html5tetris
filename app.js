@@ -2,6 +2,7 @@ var jsonfile = require('jsonfile');
 var express = require('express');
 var bodyParser = require('body-parser');
 var jwt = require('jsonwebtoken');
+var moment = require('moment');
 var app = express();
 
 const HIGHSCOREFILE = './highscore.json'
@@ -42,13 +43,18 @@ function getHighScore(req,res){
 			console.log('Error reading highscore file');
 			res.status(500).json(err);
 		} else {
+			if (moment().valueOf() - obj.weeklyUpdated > 604800000){
+				delete obj.weekly;
+			}
 			var token = jwt.sign({ 'game':'t3tri5' }, 's3cr3t', { expiresIn: 3600 });
 			obj.alltime.sort(function(a,b){
 				return b.score - a.score;
 			});
-			obj.weekly.sort(function(a,b){
-				return b.score - a.score;
-			});
+			if (obj.weekly){
+				obj.weekly.sort(function(a,b){
+					return b.score - a.score;
+				});
+			}
 			obj.token = token;
 			res.status(200).json(obj);
 		}
@@ -68,6 +74,11 @@ function postHighScore(req,res){
 			};
 			var alltime = obj.alltime;
 			var weekly = obj.weekly;
+			var weeklyUpdated = obj.weeklyUpdated;
+			if (moment().valueOf() - weeklyUpdated > 604800000){
+				weeklyUpdated += 604800000;
+				weekly = [];
+			}
 			// make sure it has 10 items
 			while (alltime.length > 20){
 				var a = getLowest(alltime);
@@ -98,7 +109,6 @@ function postHighScore(req,res){
 			}
 			weekly.push(newScore);
 			console.log(alltime.length,weekly.length);
-			var weeklyUpdated = obj.weeklyUpdated;
 			var newobj = {
 				"alltime": alltime,
 				"weeklyUpdated": weeklyUpdated,

@@ -102,11 +102,14 @@ function EndGameController($route,$window,$http,jwtHelper){
 			else i.time = moment(parseInt(i.time)).format('MMM D');
 		}
 		vm.weekly = res.data.weekly;
-		for (let i of vm.weekly){
-			if (moment().valueOf() - i.time < 172800000)
-				i.time = moment(parseInt(i.time)).fromNow();
-			else i.time = moment(parseInt(i.time)).format('MMM D');
+		if (vm.weekly){
+			for (let i of vm.weekly){
+				if (moment().valueOf() - i.time < 172800000)
+					i.time = moment(parseInt(i.time)).fromNow();
+				else i.time = moment(parseInt(i.time)).format('MMM D');
+			}
 		}
+		vm.nextUpdate = moment(parseInt(res.data.weeklyUpdated)+604800000).fromNow();
 		$window.sessionStorage.token = res.data.token;
 	}).catch(function(error){
 		$window.sessionStorage.error = "There were some errors while trying to retrieve highscore from the server. Please try again or contact me if it gets too ugly. Here are some details: " + error;
