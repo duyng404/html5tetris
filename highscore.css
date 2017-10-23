@@ -1,0 +1,224 @@
+/* ----------- RESET ---------------*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* --------------- RESPONSIVE -------------- */
+
+@media (max-width: 700px){
+	body{font-size:10px;}
+	#content{ width:90%;}
+	#thankyoubox p{ margin-top: 11px; }
+	#inputbox input{ width:80%; font-size:1.2em; line-height:1.4em;}
+	.row { width: 80%; margin: auto; }
+}
+
+@media (min-width: 700px) and (max-width: 1500px) {
+	body{font-size:14px;}
+	#content{ width:700px;}
+	#thankyoubox p{ margin-top: 14px; }
+	#inputbox input{ width:400px; font-size: 1.2em; line-height:1.4em;}
+	.row { width: 600px; margin: auto; }
+}
+
+@media (min-width: 1500px){
+	body{font-size:20px;}
+	#content{ width:850px;}
+	#thankyoubox p{ margin-top: 20px; }
+	#inputbox input{ width:500px; font-size: 1.4em; line-height:1.6em;}
+	.row { width: 800px; margin: auto; }
+}
+
+/* ----------- LAYOUT ---------------*/
+body{
+	margin:0;
+	padding:0;
+	background-color: #000;
+	line-height: 1.7em;
+	color:#ddd;
+	font-family: "Press Start 2P", "Titillium Web", Arial, sans-serif;
+}
+
+#content{
+	margin: 0 auto;
+}
+
+#thankyoubox{
+	text-align: center;
+}
+
+.divider {
+	text-align: center;
+	font-size: 1.2em;
+	margin: 35px auto 35px auto;
+}
+
+#inputbox{
+	margin: 40px auto 60px auto;
+	text-align: center;
+	font-size: 15px;
+	line-height:1.5em;
+}
+
+#inputbox input{
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	display:block;
+	margin:10px auto 10px auto;
+	background-color: rgba(30,30,30,.5);
+	font-family: "Press Start 2P", "Titillium Web", Arial, sans-serif;
+	text-align: center;
+	color: #fff;
+	border:3px solid #fff;
+	outline: none;
+}
+
+#inputbox input:hover{
+	border:3px solid #00b6ce;
+}
+
+#inputbox button{
+	display:inline-block;
+	background-color: #ddd;
+	border:0;
+	color:#222;
+	cursor:pointer;
+	font-size:1em;
+	font-family: "Press Start 2P", Tahoma, Arial, sans-serif;
+	font-weight: 600;
+	text-transform: uppercase;
+	line-height:2em;
+	margin:auto;
+	padding:0 2em 0 2em;
+}
+
+#inputbox button:hover{
+	color:#ddd;
+	background-color:#222;
+}
+
+.scoreboard{
+	margin: 30px 0 0 0;
+}
+
+.scoreboard h2{
+	text-align: center;
+	font-size: 1.4em;
+	margin: 0 0 30px 0;
+	color: #00b6ce;
+}
+
+.row{
+	display: flex;
+	justify-content: space-between;
+}
+
+.row-first{
+	color: #E4572E;
+	font-size: 1.6em;
+}
+
+.row-second{
+	color: #FFC914;
+	font-size: 1.4em;
+}
+
+.row-third{
+	color: #76B041;
+}
+
+.score{
+	text-align: right;
+}
+
+.time{
+	font-size: 0.6em;
+	line-height: 0.7em;
+	vertical-align: text-top;
+	color: #666;
+}
+
+#errorbox{
+	width: 100%;
+	padding: 10px;
+	margin: 10px;
+	font-family: 'Open Sans','Roboto', Arial, sans-serif;
+	font-size: 20px;
+	font-weight: bold;
+	text-align: center;
+	background-color: #E4572E;
+}
+
+a{
+	text-decoration: none;
+	color: #00B6CE;
+}
+
+a:visited{
+	color: #00B6CE;
+}
+
+a:hover{
+	color: #99c2ff;
+}
+
+#info h2{
+	text-color: #00b6ce;
+	text-transform: uppercase;
+	font-size: 1.5em;
+	color: #00b6ce;
+}
+
+#info p{
+	font-size: 1.2em;
+	font-family: 'Open Sans',Roboto,Arial,sans-serif;
+	margin: 1em auto 0 auto;
+}
+
+#footer{
+	font-size: 0.8em;
+	color: #888;
+	text-align: center;
+}

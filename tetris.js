@@ -100,8 +100,8 @@ var gvar = {
 		xGameOver: 140,
 		yGameOver: 15,
 		yControlPause: 160,
-		yControlRotate: 650,
-		yControlLR: 900
+		yControlRotate: 600,
+		yControlLR: 900,
 	},
 	// tile size
 	wTile: 50,
@@ -122,7 +122,9 @@ var gvar = {
 	// back-to-back clearing should award more points
 	justScored: false,
 	// is this the first tile ever?
-	firstTile: true
+	firstTile: true,
+	// game ended?
+	gameEnded: false
 };
 
 // next Tile
@@ -506,22 +508,6 @@ function updateLevel(){
 		gvar.scoreMulti = 6;
 		gvar.diffTimer = 300;
 	}
-
-	if (gvar.score < 2000){ gvar.level=1; gvar.scoreMulti=1; gvar.diffTimer=1500; }
-	else if (gvar.score < 4000){ gvar.level=2; gvar.scoreMulti=1; gvar.diffTimer=1000; }
-	else if (gvar.score < 7000){ gvar.level=3; gvar.scoreMulti=2; gvar.diffTimer=750; }
-	else if (gvar.score < 10000){ gvar.level=4; gvar.scoreMulti=2; gvar.diffTimer=650; }
-	else if (gvar.score < 14000){ gvar.level=5; gvar.scoreMulti=3; gvar.diffTimer=600; }
-	else if (gvar.score < 18000){ gvar.level=6; gvar.scoreMulti=3; gvar.diffTimer=550; }
-	else if (gvar.score < 23000){ gvar.level=7; gvar.scoreMulti=4; gvar.diffTimer=500; }
-	else if (gvar.score < 28000){ gvar.level=8; gvar.scoreMulti=4; gvar.diffTimer=450; }
-	else if (gvar.score < 34000){ gvar.level=9; gvar.scoreMulti=5; gvar.diffTimer=400; }
-	else if (gvar.score < 40000){ gvar.level=10; gvar.scoreMulti=5; gvar.diffTimer=350; }
-	else {
-		gvar.level = Math.floor((gvar.score-40000)/7000+11);
-		gvar.scoreMulti = 6;
-		gvar.diffTimer = 300;
-	}
 }
 
 function commit(){
@@ -556,7 +542,7 @@ function commit(){
 	if (del.length>0){
 		// reward the player with points for clearing rows
 		if (del.length == 1) gvar.score += 100*gvar.scoreMulti;
-		if (del.length == 2) gvar.score += 300*gvar.scoreMulti;
+		if (del.length == 2) gvar.score += 250*gvar.scoreMulti;
 		if (del.length == 3) gvar.score += 500*gvar.scoreMulti;
 		if (del.length == 4) gvar.score += 800*gvar.scoreMulti;
 		if (gvar.justScored) gvar.score += 250*gvar.scoreMulti;
@@ -801,10 +787,10 @@ function getRandomType(){
 	var result = 0;
 	//var max = Math.max.apply(Math,stats);
 	// construct an array
-	if (gvar.level < 5) { var chance = [ITILE,ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
-	else if (gvar.level < 12) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
-	else if (gvar.level < 15) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
-	else if (gvar.level < 20){ var chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
+	if (gvar.level < 8) { var chance = [ITILE,ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
+	else if (gvar.level < 15) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
+	else if (gvar.level < 19) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
+	else if (gvar.level < 25){ var chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
 	else { var chance = [ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
 	//for (var i=0; i<7; i++)
 	//	for (var j=0; j< (max-stats[i]+1)+Math.floor((max-stats[i])*0.75); j++) chance.push(i);
@@ -843,23 +829,28 @@ function update() {
 }
 
 function gameOver(){
-	togglePause();
-	gvar.newTileReady = false;
-	hud.scoreText.destroy();
-	hud.levelText.destroy();
-	hud.nextText.destroy();
-	hud.highText.destroy();
-	hud.pauseText.destroy();
-	for (let i of nTile.sq) i.kill();
-	hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nrefresh page to replay',15);
-	hud.gameOverText.align = 'center';
-	hud.tutText.align = 'center';
+	if (!gvar.gameEnded){
+		gvar.gameEnded = true;
+		togglePause();
+		gvar.newTileReady = false;
+		hud.scoreText.destroy();
+		hud.levelText.destroy();
+		hud.nextText.destroy();
+		hud.highText.destroy();
+		hud.pauseText.destroy();
+		for (let i of nTile.sq) i.kill();
+		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds ...',15);
+		hud.gameOverText.align = 'center';
+		hud.tutText.align = 'center';
+
+		localStorage.setItem('score',gvar.score);
+		var d = new Date().getTime();
+		localStorage.setItem('time',d);
+		window.setTimeout(function(){
+			game.net.updateQueryString(undefined,undefined,true,'./highscore.html');
+		}, 2000);
+	}
 }
 
 function render() {
-	//game.debug.spriteInfo(aTile.sq[0], 20,32);
-	//game.debug.cameraInfo(game.camera,20,32);
-	//for (var i=0; i<this.geometry.length; i++){
-	//	game.debug.geom(this.geometry[i],'#ffffff');
-	//}
 }

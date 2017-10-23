@@ -83,44 +83,57 @@ function config($httpProvider, $routeProvider, $locationProvider) {
 	$locationProvider.html5Mode(true);
 }
 
-function EndGameController($route,$window,$http){
+function EndGameController($route,$window,$http,jwtHelper){
 	var vm = this;
 	vm.score = $window.localStorage.score;
 	vm.time = $window.localStorage.time;
+	vm.justPlayed = false;
+	if (vm.score && vm.time) vm.justPlayed = true;
+	if ($window.sessionStorage.error) {
+		vm.error = $window.sessionStorage.error;
+		$window.sessionStorage.clear();
+	}
 
 	$http.get('/z/getHighScore').then(function(res){
-		console.log(res.data);
 		vm.alltime = res.data.alltime;
+		for (let i of vm.alltime){
+			if (moment().valueOf() - i.time < 172800000)
+				i.time = moment(parseInt(i.time)).fromNow();
+			else i.time = moment(parseInt(i.time)).format('MMM D');
+		}
 		vm.weekly = res.data.weekly;
+		for (let i of vm.weekly){
+			if (moment().valueOf() - i.time < 172800000)
+				i.time = moment(parseInt(i.time)).fromNow();
+			else i.time = moment(parseInt(i.time)).format('MMM D');
+		}
+		$window.sessionStorage.token = res.data.token;
+	}).catch(function(error){
+		$window.sessionStorage.error = "There were some errors while trying to retrieve highscore from the server. Please try again or contact me if it gets too ugly. Here are some details: " + error;
 	});
 
 	vm.addScore = function(){
+		var token = jwtHelper.decodeToken($window.sessionStorage.token);
 		var postData = {
+			game: token.game,
 			name: vm.nameField,
 			score: vm.score,
 			time: vm.time
 		};
 		if (vm.nameInputForm.$valid){
 			$http.post('/z/postHighScore',postData).then(function(res){
-				if (res.status === 200)
+				if (res.status === 200){
+					$window.localStorage.clear();
 					$route.reload();
+				} else {
+					$window.sessionStorage.error = "There were some errors when posting your score. Please try again or contact me if it gets too ugly."
+					$route.reload();
+				}
 			}).catch(function(error){
 				console.log(error);
+				$window.sessionStorage.error = "There were some errors when posting your score. Please try again or contact me if it gets too ugly. Here are the details: " + error;
+				$route.reload();
 			});
 		}
 	}
 }
-
-
-
-//window.onload = function(){
-//	var time = localStorage.getItem('time');
-//	console.log("hello",score,time);
-//	document.getElementById('score').innerHTML = 'Your score is: ' + score;
-//	document.getElementById('time').innerHTML = 'The time was posted: ' + time;
-//
-//	var obj = {name: 'JP'};
-//	jsonfile.writefile(file,obj,function(err){
-//		console.error(err);
-//	});
-//}

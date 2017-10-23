@@ -1,6 +1,7 @@
 var jsonfile = require('jsonfile');
 var express = require('express');
 var bodyParser = require('body-parser');
+var jwt = require('jsonwebtoken');
 var app = express();
 
 const HIGHSCOREFILE = './highscore.json'
@@ -24,13 +25,31 @@ app.
 
 app.
 	route('/z/postHighScore').
-	post(postHighScore);
+	post(authenticate, postHighScore);
+
+function getLowest(scoreboard){
+	min = 0;
+	for (var i=1; i<scoreboard.length; i++){
+		if (scoreboard[i].score < scoreboard[min].score)
+			min=i;
+	}
+	return min;
+}
 
 function getHighScore(req,res){
 	jsonfile.readFile(HIGHSCOREFILE,function(err,obj){
 		if (err){
+			console.log('Error reading highscore file');
 			res.status(500).json(err);
 		} else {
+			var token = jwt.sign({ 'game':'t3tri5' }, 's3cr3t', { expiresIn: 3600 });
+			obj.alltime.sort(function(a,b){
+				return b.score - a.score;
+			});
+			obj.weekly.sort(function(a,b){
+				return b.score - a.score;
+			});
+			obj.token = token;
 			res.status(200).json(obj);
 		}
 	});
@@ -42,19 +61,44 @@ function postHighScore(req,res){
 			res.status(500).json(err);
 		}
 		else {
+			var newScore = {
+				"name": req.body.name,
+				"score": req.body.score,
+				"time": req.body.time
+			};
 			var alltime = obj.alltime;
 			var weekly = obj.weekly;
+			// make sure it has 10 items
+			while (alltime.length > 20){
+				var a = getLowest(alltime);
+				alltime.splice(a,1);
+			}
+			while (weekly.length > 10){
+				var a = getLowest(weekly);
+				weekly.splice(a,1);
+			}
+			if (alltime.length < 20){
+				// get the lowest score
+				var minAlltime = getLowest(alltime);
+				// compare score
+				// if score is more, pop the lowest score, push the score
+				if (req.body.score > alltime[minAlltime].score){
+					alltime.splice(minAlltime,1);
+					alltime.push(newScore);
+				}
+			}
+			if (weekly.length < 10){
+				// get the lowest score
+				var minWeekly = getLowest(weekly);
+				// compare score
+				// if score is more, pop the lowest score, push the score
+				if (req.body.score > weekly[minWeekly].score){
+					weekly.splice(minWeekly,1);
+					weekly.push(newScore);
+				}
+			}
+			console.log(alltime.length,weekly.length);
 			var weeklyUpdated = obj.weeklyUpdated;
-			alltime.push({
-				"name": req.body.name,
-				"score": req.body.score,
-				"time": req.body.time
-			});
-			weekly.push({
-				"name": req.body.name,
-				"score": req.body.score,
-				"time": req.body.time
-			});
 			var newobj = {
 				"alltime": alltime,
 				"weeklyUpdated": weeklyUpdated,
@@ -69,6 +113,24 @@ function postHighScore(req,res){
 			})
 		}
 	});
+}
+
+function authenticate(req,res,next){
+	var headerExists = req.headers.authorization;
+	if (headerExists){
+		var token = req.headers.authorization.split(' ')[1];
+		jwt.verify(token, 's3cr3t', function(err,decoded){
+			if (err){
+				console.log(error);
+				res.status(401).json('Unauthorized');
+			} else {
+				req.game = decoded.game;
+				next();
+			}
+		});
+	} else {
+		res.status(403).json('No token provided');
+	}
 }
 
 // Listen for requests

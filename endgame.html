@@ -1,23 +1,96 @@
-<p>dude pls help</p>
-<p id="score">{{ vm.score  }}</p>
-<p id="time">{{ vm.time  }}</p>
+<div id="errorbox" ng-if="vm.error">
+	{{ vm.error }}
+</div>
 
-<p>Enter your name for highscore</p>
+<div id="thankyoubox" ng-if="vm.justPlayed">
+	<p>--- GAME OVER ---</p>
+	<p>THANK YOU FOR PLAYING</p>
+	<p>YOUR SCORE IS<br/ >{{ vm.score }}</p>
+</div>
 
-<form name="vm.nameInputForm" ng-submit="vm.addScore()">
-	<input type="text" placeholder="Enter name" ng-model="vm.nameField" autocapitalize="none">
-	<button type="submit">Save name</button>
-</form>
+<div id="inputbox" ng-if="vm.justPlayed">
+	<p>ENTER YOUR NAME FOR HIGHSCORE</p>
 
-{{ if (vm.weekly) }}
-<h2>Weekly highscore</h2>
-<ul>
-	<li ng-repeat="entry in vm.weekly">{{ entry.name }}: {{ entry.score }} at {{ entry.time }}</li>
-</ul>
-{{ endif }}
+	<form name="vm.nameInputForm" ng-submit="vm.addScore()">
+		<input type="text" placeholder="Enter name" ng-model="vm.nameField" autocapitalize="none" maxlength=15>
+		<button type="submit">Save</button>
+	</form>
+</div>
 
-{{ if (vm.alltime) }}
-<h2>All time highscore</h2>
-<ul>
-	<li ng-repeat="entry in vm.alltime">{{ entry.name }}: {{ entry.score }} at {{ entry.time }}</li>
-</ul>
+<div id="thankyoubox" ng-if="!vm.justPlayed">
+	<p>WELCOME TO TETRIS</p>
+	<p><a href="http://tetris.anythingbut.me">&lt;&lt; CLICK HERE TO PLAY</a></p>
+</div>
+
+<p class="divider">----- (*^v^) -----</p>
+
+<div class="scoreboard" ng-if="vm.weekly">
+	<h2>WEEKLY HIGHSCORE</h2>
+	<div ng-repeat="entry in vm.weekly track by $index">
+		<div class="row row-first" ng-show="$index == 0">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+		<div class="row row-second" ng-show="$index == 1">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+		<div class="row row-third" ng-show="$index == 2">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+		<div class="row" ng-show="$index > 2">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+	</div>
+</div>
+
+<div class="scoreboard" ng-if="vm.alltime">
+	<h2>ALLTIME HIGHSCORE</h2>
+	<div ng-repeat="entry in vm.alltime track by $index">
+		<div class="row row-first" ng-show="$index == 0">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+		<div class="row row-second" ng-show="$index == 1">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+		<div class="row row-third" ng-show="$index == 2">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+		<div class="row" ng-show="$index > 2">
+			<div class="name"><span>{{ $index+1 }}. </span>{{ entry.name }}</div>
+			<div class="score">{{ entry.score }}<br /><span class="time">{{ entry.time }}</span></div>
+		</div>
+	</div>
+</div>
+
+<p class="divider">----- (^v^*) -----</p>
+
+<div id="info">
+	<h2>How does scoring and the level system work?</h2>
+	<p>Although I have made effort to make the game as closely to the original as possible, I have implemented my own scoring system, in hope that it will provide players with a challenging and fun game while keeping the game sweet and short.</p>
+	<p>Scores are awarded each time a player &quot;Lock in&quot; a tile, depending on how far away the tile is from the bottom. So the earlier you &quot;Lock in&quot;, the more scores you get.</p>
+	<p>One-line clear awards you 100 points. Two-line clear is 250. Three-line clear is 500. Four-line clear is 800. Consecutive, back-to-back line clears awards you 250 points each time.</p>
+	<p>Players start off at level 1 with a delay of 1500miliseconds of tile falling, and a score multiplier of 1. The delay gets shorter and the multiplier get higher in subsequent levels</p>
+	<p>Level 2 is at 3000 points. Falling delay is 1000ms. Score multiplier is 1x.</p>
+	<p>Level 3 is at 6000 points. Falling delay is 750ms. Score multiplier is 2x.</p>
+	<p>Level 4 is at 11000 points. Falling delay is 650ms. Score multiplier is 2x.</p>
+	<p>Level 5 is at 16000 points. Falling delay is 600ms. Score multiplier is 3x.</p>
+	<p>Level 6 is at 22000 points. Falling delay is 550ms. Score multiplier is 3x.</p>
+	<p>Level 7 is at 27000 points. Falling delay is 500ms. Score multiplier is 4x.</p>
+	<p>Level 8 is at 34000 points. Falling delay is 450ms. Score multiplier is 4x.</p>
+	<p>Level 9 is at 41000 points. Falling delay is 400ms. Score multiplier is 5x.</p>
+	<p>Level 10 is at 49000 points. Falling delay is 350ms. Score multiplier is 5x.</p>
+	<p>Level 11 is at 60000 points any subsequent 10000 points is another level. Falling delay is constant at 300ms. Score multiplier is constant at 6x.</p>
+	<p>The first 10 levels, tile generation is heavily biased towards generating more i-tile (the longest tile) and l-tile and j-tile, as well as t-tile. From level 15 and onward, tile generation slowly become non-biased and all tiles have the same chance of appearing.</p>
+</div>
+
+<p class="divider">----- \(^o^)/ -----</p>
+
+<div id="footer">
+	<p>Made by Duy Nguyen aka <a href="https://github.com/ferb96">ferb96</a> Oct 2017. Licensed under MIT License. Visit my homepage at <a href="http://anythingbut.me">anythingbut.me</a></p>
+</div>
