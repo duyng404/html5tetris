@@ -124,7 +124,9 @@ var gvar = {
 	// is this the first tile ever?
 	firstTile: true,
 	// game ended?
-	gameEnded: false
+	gameEnded: false,
+	// high score
+	highscore: '---'
 };
 
 // next Tile
@@ -723,10 +725,22 @@ function startGame(){
 	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
 	hud.gameFieldMask.endFill();
 
+	// get the highscore
+	$.get( "/z/getHighScore", function( data ) {
+		if (data.weekly){
+			var weekly = data.weekly;
+			weekly.sort(function(a,b){
+				return b.score - a.score;
+			});
+			gvar.highscore = weekly[0].score;
+		}
+	});
+
+
 	hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
 	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
 	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'arcadefont','score:   ',15);
-	hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: ---',15);
+	hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: '+gvar.highscore,15);
 	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'arcadefont','-- paused --',30);
 	hud.pauseText.visible = false;
 
@@ -825,6 +839,7 @@ function update() {
 	if (!gvar.firstTile){
 		hud.scoreText.text = 'score:   ' + gvar.score;
 		hud.levelText.text = 'level:   ' + gvar.level;
+		hud.highText.text = 'hiscore: '+ gvar.highscore;
 	}
 }
 
@@ -846,8 +861,13 @@ function gameOver(){
 		localStorage.setItem('score',gvar.score);
 		var d = new Date().getTime();
 		localStorage.setItem('time',d);
+		game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
+		window.location = "/highscore.html";
+		window.open('/highscore.html','_self');
+		game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
+		window.location = "http://tetris.anythingbut.me/highscore.html";
+		window.open('http://tetris.anythingbut.me/highscore.html','_self');
 		window.setTimeout(function(){
-			game.net.updateQueryString(undefined,undefined,true,'./highscore.html');
 		}, 2000);
 	}
 }
