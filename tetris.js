@@ -704,6 +704,9 @@ function startGame(){
 	if (hud.tutorial) hud.tutorial.destroy();
 	if (hud.tutText) hud.tutText.destroy();
 	if (hud.touchButton) hud.touchButton.destroy();
+	if (hud.touchButtonReal) hud.touchButtonReal.destroy();
+	if (hud.HSButton) hud.HSButton.destroy();
+	if (hud.HSButtonReal) hud.HSButtonReal.destroy();
 	game.pause = false;
 
 	gvar.newTileReady = true;
