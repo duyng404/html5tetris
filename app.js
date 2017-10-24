@@ -26,12 +26,16 @@ app.
 
 app.
 	route('/z/postHighScore').
-	post(authenticate, postHighScore);
+	post(postHighScore);
+
+app.
+	route('/z/updateHighScore').
+	post(authenticate, updateHighScore);
 
 function getLowest(scoreboard){
 	min = 0;
 	for (var i=1; i<scoreboard.length; i++){
-		if (scoreboard[i].score < scoreboard[min].score)
+		if (parseInt(scoreboard[i].score) < parseInt(scoreboard[min].score))
 			min=i;
 	}
 	return min;
@@ -50,10 +54,18 @@ function getHighScore(req,res){
 			obj.alltime.sort(function(a,b){
 				return b.score - a.score;
 			});
+			for (let i of obj.alltime){
+				if (i.name == 'anonymous') i.name = 'xAnonymous';
+				if (i.name == 'anonymous139139') i.name = 'anonymous';
+			}
 			if (obj.weekly){
 				obj.weekly.sort(function(a,b){
 					return b.score - a.score;
 				});
+				for (let i of obj.weekly){
+					if (i.name == 'anonymous') i.name = 'xAnonymous';
+					if (i.name == 'anonymous139139') i.name = 'anonymous';
+				}
 			}
 			obj.token = token;
 			res.status(200).json(obj);
@@ -72,12 +84,25 @@ function postHighScore(req,res){
 				"score": req.body.score,
 				"time": req.body.time
 			};
+			console.log(newScore);
 			var alltime = obj.alltime;
 			var weekly = obj.weekly;
 			var weeklyUpdated = obj.weeklyUpdated;
 			if (moment().valueOf() - weeklyUpdated > 604800000){
 				weeklyUpdated += 604800000;
 				weekly = [];
+			};
+			// check if already existed (only for anonymous)
+			for (let i of alltime){
+				if (i.name == 'anonymous139139' && i.score == newScore.score && i.time == newScore.time){
+					newScore.score=0;
+				}
+			}
+			for (let i of weekly){
+				if (i.name == 'anonymous139139' && i.score == newScore.score && i.time == newScore.time){
+					console.log('this score was here before');
+					newScore.score=0;
+				}
 			}
 			// make sure it has 10 items
 			while (alltime.length > 20){
@@ -88,27 +113,70 @@ function postHighScore(req,res){
 				var a = getLowest(weekly);
 				weekly.splice(a,1);
 			}
-			if (alltime.length == 10){
-				// get the lowest score
-				var minAlltime = getLowest(alltime);
-				// compare score
-				// if score is more, pop the lowest score, push the score
-				if (req.body.score > alltime[minAlltime].score){
-					alltime.splice(minAlltime,1);
+			// get the lowest score
+			var minAlltime = getLowest(alltime);
+			// compare score
+			// if score is more, pop the lowest score, push the score
+			if (alltime.length < 20 && parseInt(newScore.score != 0)){
+				alltime.push(newScore);
+			}
+			else if (parseInt(newScore.score) > parseInt(alltime[minAlltime].score) && parseInt(newScore.score) != 0){
+				alltime.splice(minAlltime,1);
+				alltime.push(newScore);
+			}
+			// get the lowest score
+			var minWeekly = getLowest(weekly);
+			// compare score
+			// if score is more, pop the lowest score, push the score
+			if (weekly.length < 10 && parseInt(newScore.score != 0)){
+				weekly.push(newScore);
+			}
+			if (parseInt(newScore.score) > parseInt(weekly[minWeekly].score) && parseInt(newScore.score) != 0){
+				console.log('pushing newscore');
+				weekly.splice(minWeekly,1);
+				weekly.push(newScore);
+			}
+			var newobj = {
+				"alltime": alltime,
+				"weeklyUpdated": weeklyUpdated,
+				"weekly": weekly
+			}
+			jsonfile.writeFile(HIGHSCOREFILE,newobj, function(err){
+				if (err){
+					res.status(500).json(err);
+				} else {
+					res.status(200).json(newobj);
+				}
+			})
+		}
+	});
+}
+
+function updateHighScore(req,res){
+	jsonfile.readFile(HIGHSCOREFILE,function(err,obj){
+		if (err){
+			res.status(500).json(err);
+		}
+		else {
+			var changed = false;
+			var newScore = {
+				"name": req.body.name,
+				"score": req.body.score,
+				"time": req.body.time
+			};
+			var alltime = obj.alltime;
+			var weekly = obj.weekly;
+			var weeklyUpdated = obj.weeklyUpdated;
+			for (let i of alltime){
+				if (i.name == "anonymous139139" && i.time == newScore.time && i.score == newScore.score){
+					i.name = newScore.name;
 				}
 			}
-			alltime.push(newScore);
-			if (weekly.length == 10){
-				// get the lowest score
-				var minWeekly = getLowest(weekly);
-				// compare score
-				// if score is more, pop the lowest score, push the score
-				if (req.body.score > weekly[minWeekly].score){
-					weekly.splice(minWeekly,1);
+			for (let i of weekly){
+				if (i.name == "anonymous139139" && i.time == newScore.time && i.score == newScore.score){
+					i.name = newScore.name;
 				}
 			}
-			weekly.push(newScore);
-			console.log(alltime.length,weekly.length);
 			var newobj = {
 				"alltime": alltime,
 				"weeklyUpdated": weeklyUpdated,

@@ -205,6 +205,10 @@ body{
 	color: #666;
 }
 
+.noname{
+	color: #555;
+}
+
 #errorbox{
 	width: 100%;
 	padding: 10px;

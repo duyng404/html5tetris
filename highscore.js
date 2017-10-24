@@ -70,12 +70,6 @@ function config($httpProvider, $routeProvider, $locationProvider) {
 			controllerAs: 'vm',
 			access: { restricted: false	}
 		})
-		.when('/postScore', {
-			templateUrl: 'angular-app/hotel-list/hotels.html',
-			//controller: HotelsController,
-			//controllerAs: 'vm',
-			access: { restricted: false	}
-		})
 		.otherwise({
 			redirectTo: '/'
 		});
@@ -85,7 +79,6 @@ function config($httpProvider, $routeProvider, $locationProvider) {
 
 function EndGameController($route,$window,$http,jwtHelper){
 	var vm = this;
-	vm.showInput = false;
 	vm.score = $window.localStorage.score;
 	vm.time = $window.localStorage.time;
 	vm.justPlayed = false;
@@ -95,26 +88,43 @@ function EndGameController($route,$window,$http,jwtHelper){
 		$window.sessionStorage.clear();
 	}
 
-	$http.get('/z/getHighScore').then(function(res){
-		vm.alltime = res.data.alltime;
-		for (let i of vm.alltime){
-			if (moment().valueOf() - i.time < 172800000)
-				i.time = moment(parseInt(i.time)).fromNow();
-			else i.time = moment(parseInt(i.time)).format('MMM D');
+	var postData = {
+		name: 'anonymous139139',
+		score: vm.score,
+		time: vm.time
+	};
+	$http.post('/z/postHighScore',postData).then(function(postRes){
+		if (postRes.status === 200){
+			$http.get('/z/getHighScore').then(function(getRes){
+				vm.alltime = getRes.data.alltime;
+				for (let i of vm.alltime){
+					if (i.name == 'anonymous') i.name = 'no name';
+					if (moment().valueOf() - i.time < 172800000)
+						i.time = moment(parseInt(i.time)).fromNow();
+					else i.time = moment(parseInt(i.time)).format('MMM D');
+				}
+				vm.weekly = getRes.data.weekly;
+				if (vm.weekly){
+					for (let i of vm.weekly){
+						if (i.name == 'anonymous') i.name = 'no name';
+						if (moment().valueOf() - i.time < 172800000)
+							i.time = moment(parseInt(i.time)).fromNow();
+						else i.time = moment(parseInt(i.time)).format('MMM D');
+					}
+				}
+				vm.nextUpdate = moment(parseInt(getRes.data.weeklyUpdated)+604800000).fromNow();
+				$window.sessionStorage.token = getRes.data.token;
+			}).catch(function(err){
+				$window.sessionStorage.error = "There were some errors while trying to retrieve highscore from the server. Please try again or contact me if it gets too ugly. Here are some details: " + err;
+			});
+		} else {
+			$window.sessionStorage.error = "There were some errors when posting your score. Please try again or contact me if it gets too ugly.";
 		}
-		vm.weekly = res.data.weekly;
-		if (vm.weekly){
-			for (let i of vm.weekly){
-				if (moment().valueOf() - i.time < 172800000)
-					i.time = moment(parseInt(i.time)).fromNow();
-				else i.time = moment(parseInt(i.time)).format('MMM D');
-			}
-		}
-		vm.nextUpdate = moment(parseInt(res.data.weeklyUpdated)+604800000).fromNow();
-		$window.sessionStorage.token = res.data.token;
 	}).catch(function(error){
-		$window.sessionStorage.error = "There were some errors while trying to retrieve highscore from the server. Please try again or contact me if it gets too ugly. Here are some details: " + error;
-	});
+		console.log(error);
+		$window.sessionStorage.error = "There were some errors when posting your score. Please try again or contact me if it gets too ugly. Here are the details: " + error;
+		$route.reload();
+	})
 
 	vm.playAgain = function(){
 		$window.localStorage.clear();
@@ -130,7 +140,7 @@ function EndGameController($route,$window,$http,jwtHelper){
 			time: vm.time
 		};
 		if (vm.nameInputForm.$valid){
-			$http.post('/z/postHighScore',postData).then(function(res){
+			$http.post('/z/updateHighScore',postData).then(function(res){
 				if (res.status === 200){
 					$window.localStorage.clear();
 					$route.reload();

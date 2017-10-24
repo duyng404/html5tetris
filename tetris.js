@@ -446,7 +446,7 @@ function flashTexture(x,y,color1,color2,callback){
 		if (callback && typeof callback === "function" && !gvar.cleaningUp){
 			gvar.cleaningUp = true;
 			var timer= game.time.create(true);
-			timer.add(50,callback,this);
+			timer.add(100,callback,this);
 			timer.start();
 		}
 	});
