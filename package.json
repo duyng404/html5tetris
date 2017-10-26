@@ -2,7 +2,7 @@
   "name": "html5tetris",
   "version": "1.0.0",
   "description": "My attempt at a tetris clone using html5 and js. Created using Phaser game engine.",
-  "main": "app.js",
+  "main": "highscoreServer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

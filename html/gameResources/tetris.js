@@ -1,7 +1,8 @@
-// javascript doesn't have a sort number functions wtf
+// javascript doesn't have a sort number functions so here it is
 function sortNumber(a,b) {
     return a - b;
 }
+
 // helper function to shuffle elements of an array
 function shuffle(a) {
     var j, x, i;
@@ -15,6 +16,7 @@ function shuffle(a) {
 
 // tile types
 const ITILE=0; const JTILE=1; const LTILE=2; const OTILE=3; const STILE=4; const TTILE=5; const ZTILE=6;
+// tile colors according to the tile. The 2 last ones are for flashing when rows are cleared
 const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E,0xFFFFFF,0x000000];
 
 // blueprints of all the states
@@ -60,6 +62,8 @@ const STATE = [
 		[[0,0], [0,-1], [-1,0], [-1,1]]
 	]
 ]
+
+// this is used to store the game itself
 var game;
 
 // global variables
@@ -81,26 +85,37 @@ var gvar = {
 	yBoard: 100,
 	// position of HUD elements
 	hudPos: {
+		// Next text
 		xNext: 70,
 		yNext: 7,
+		// Score text
 		xScore: 280,
 		yScore: 25,
+		// Level text
 		xLevel: 280,
 		yLevel: 60,
+		// Highscore text
 		xHigh: 280,
 		yHigh: 95,
+		// Pause text
 		xPause: 125,
 		yPause: 500,
+		// the touch tutorial image
 		xTut: 50,
 		yTut: 0,
+		// welcome message text
 		xTutText: 120,
 		yTutText: 350,
+		// message that says "tap here for touch input"
 		xTouchButton: 140,
 		yTouchButton: 600,
+		// message that says "tap here for highscore"
 		xHSButton: 160,
 		yHSButton: 750,
+		// Game Over text
 		xGameOver: 70,
 		yGameOver: 15,
+		// boundaries of the touch inputs
 		yControlPause: 160,
 		yControlRotate: 600,
 		yControlLR: 900,
@@ -109,8 +124,6 @@ var gvar = {
 	wTile: 50,
 	// ready to make a new tile or not
 	newTileReady: false,
-	// cleaning up board or not
-	cleaningUp: false,
 	// accepting input or not
 	acceptingInput: false,
 	// difficultyTimer, changes accordingly as level increases
@@ -131,20 +144,13 @@ var gvar = {
 	highscore: '---'
 };
 
-// next Tile
-var nTile = {
-	sq: [],
-	sc: [],
-	type: 0,
-}
-
-// active Tile
+// information of the active tile
 var aTile = {
 	// all the squares of the active tile
 	sq: [],
-	// all the squares, relative to pivot point
+	// position all the squares, relative to pivot point
 	sc: [],
-	// position of the pivot point
+	// position of the pivot point (in the board)
 	x: 0,
 	y: 0,
 	// type
@@ -155,7 +161,14 @@ var aTile = {
 	timer: undefined
 };
 
-// ghost Tile
+// information of the next tile
+var nTile = {
+	sq: [],
+	sc: [],
+	type: 0,
+}
+
+// information of the ghost tile
 var gTile = {
 	sq: [],
 	sc: [],
@@ -164,7 +177,7 @@ var gTile = {
 }
 
 // current game board
-var board = [ // 10x16, one extra line on top for spawning
+var board = [ // 10x18
 	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -192,16 +205,19 @@ var stats = [0,0,0,0,0,0,0];
 // texts and information display in the game
 var hud = {};
 
+// on window load, determine the width and height to resize the game area accordingly
 window.onload = function(){
 	// get user's window width and height
 	var windowWidth = window.innerWidth;
 	var windowHeight = window.innerHeight;
 	var ratio = windowWidth / windowHeight;
+	// resize accordingly
 	var newWidth = gvar.gameWidth;
 	if (ratio > gvar.gameWidth / gvar.gameHeight){
 		newWidth = gvar.gameHeight * ratio;
 		var difference = newWidth - gvar.gameWidth;
 		gvar.gameWidth = newWidth;
+		// also move other elements in place
 		gvar.xBoard += difference / 2;
 		gvar.xNext += difference / 2;
 		for (var i in gvar.hudPos){
@@ -221,12 +237,14 @@ window.onload = function(){
 		}
 	}
     // creation of the game itself
-	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
+	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update});
 }
 
 function preload() {
-	game.load.bitmapFont('arcadefont','./arcadefont.png','./arcadefont.fnt');
-	game.load.image('tutoverlay','./tutorial.png');
+	// the font
+	game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
+	// touch guide image
+	game.load.image('tutoverlay','./gameResources/tutorial.png');
 	// resize so it fits the screen
 	game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 }
@@ -250,16 +268,17 @@ function drawASquare(x, y, color){
 }
 
 function placeASquare(x, y, type){
-	// the "real" coordinate in pixels
+	// calculate the "real" coordinate in pixels
 	var rx = gvar.xBoard+(x*gvar.wTile);
 	var ry = gvar.yBoard+(y*gvar.wTile);
+	// add the sprite in that place
 	var a = game.add.sprite(rx,ry, texture[type]);
 	return a;
 	//return agame.add.sprite(rx,ry, texture[type]);
 }
 
 function updateNextTile(type){
-	// get the first state of that type
+	// get the first state of the specified type
 	nTile.sc = STATE[type][0].slice();
 	// if this is the first tile, just populate sq
 	if (gvar.firstTile){
@@ -267,8 +286,8 @@ function updateNextTile(type){
 			nTile.sq.push(placeASquare(0,0,type));
 		}
 	}
-	// replace the texture with the correct one
 	for (var i=0; i<nTile.sq.length; i++){
+		// replace the texture with the correct one
 		nTile.sq[i].loadTexture(texture[type]);
 		// also reposition it
 		nTile.sq[i].x = gvar.xNext + nTile.sc[i][0] * gvar.wTile;
@@ -287,21 +306,25 @@ function makeNewTile(){
 	for (var i=0; i<aTile.sc.length; i++){
 		var newx = gvar.xSpawn + aTile.sc[i][0];
 		var newy = gvar.ySpawn + aTile.sc[i][1];
+		// if the place we are trying to place already has a tile, Game Over
 		if (board[newx][newy] == 1) { gameOver(); break; }
+		// push new square into sq
 		aTile.sq.push(placeASquare(newx, newy, aTile.type));
+		// apply the mask
 		aTile.sq[i].mask = hud.gameFieldMask;
 	}
 	// other params
 	aTile.state = 0;
 	aTile.x = gvar.xSpawn;
 	aTile.y = gvar.ySpawn;
-	// attach a timer
+	// attach a timer to slowly lower the tile
 	aTile.timer = game.time.create(false);
 	aTile.timer.loop(gvar.diffTimer,lowerTile,this);
 	aTile.timer.start();
 }
 
 function transformTile(){
+	// update the squares of the tile to its new position
 	for (var i=0; i<aTile.sq.length; i++){
 		var newx = gvar.xBoard+gvar.wTile*(aTile.x + aTile.sc[i][0]);
 		var newy = gvar.yBoard+gvar.wTile*(aTile.y + aTile.sc[i][1]);
@@ -311,17 +334,17 @@ function transformTile(){
 }
 
 function updateGhost(){
-	// if ghost doesn't exist, create it
+	// if ghost doesn't exist, create it in the same position as aTile
 	if (gTile.sq.length == 0){
 		for (var i=0; i<aTile.sq.length; i++){
 			var newx = aTile.x + aTile.sc[i][0];
 			var newy = aTile.y + aTile.sc[i][1];
 			gTile.sq.push(placeASquare(newx,newy,aTile.type));
-			gTile.sq[i].alpha=0.2;
+			gTile.sq[i].alpha=0.3;
 		}
 		gTile.sc = aTile.sc.slice();
 	}
-	// if ghost did exist, move it back to same place as active tile
+	// if ghost did exist, move it back to same position as active tile
 	else {
 		for (var i=0; i<aTile.sq.length; i++){
 			gTile.sq[i].x = aTile.sq[i].x;
@@ -331,27 +354,34 @@ function updateGhost(){
 	}
 	gTile.x = aTile.x;
 	gTile.y = aTile.y;
+	// count how far it is from the bottom
 	var count=0;
 	while(itsOkayToGoDown(gTile)){
 		gTile.y+=1;
 		count+=1;
 	}
-	// move the tiles
+	// move the squares down to the bottom
 	for (let tile of gTile.sq){
 		tile.y += count * gvar.wTile;
 	}
 }
 
+// when the active tile's timer expires, this function will lower it down
 function lowerTile(){
+	// first, disable input
 	gvar.acceptingInput = false;
+	// move down one
 	if (itsOkayToGoDown(aTile)){
 		aTile.y += 1;
 		for (let tile of aTile.sq){
 			tile.y += gvar.wTile;
 		}
-	} else {
+	}
+	// if cannot, then commit
+	else {
 		commit();
 	}
+	// enable input
 	gvar.acceptingInput = true;
 }
 
@@ -366,6 +396,7 @@ function moveLeft(){
 	// ok so we do, let's move left
 	aTile.x-=1;
 	transformTile();
+	// also update the ghost tile
 	updateGhost();
 }
 
@@ -380,6 +411,7 @@ function moveRight(){
 	// ok so we do, let's move right
 	aTile.x+=1;
 	transformTile();
+	// also update the ghost tile
 	updateGhost();
 }
 
@@ -403,10 +435,12 @@ function rotateRight(){
 	aTile.sc = newsc.slice();
 	aTile.state = newstate;
 	transformTile();
+	// also update the ghost tile
 	updateGhost();
 }
 
 function itsOkayToGoDown(theTile){
+	// basically check if the position right below have anything occyping already (or out of bound)
 	for (var i=0; i<theTile.sc.length; i++){
 		var newx = theTile.x + theTile.sc[i][0];
 		var newy = theTile.y + theTile.sc[i][1];
@@ -416,6 +450,7 @@ function itsOkayToGoDown(theTile){
 }
 
 function checkRowFull(y){
+	// check if row y is full
 	var full = true;
 	for (var i=0; i<gvar.wBoard; i++){
 		if (board[i][y] == 0){
@@ -423,49 +458,26 @@ function checkRowFull(y){
 			break;
 		}
 	}
+	// if it is full, add it to the list to clear it later
 	if (full){
 		del.push(y);
 	}
 }
 
-// color1 and color2 are index of COLOR array
-function flashTexture(x,y,color1,color2,callback){
-	var timer = game.time.create(false);
-	var count = 0;
-	timer.repeat(100,4,function(timer){
-		if (count % 2 == 0){
-			tBoard[x][y].loadTexture(texture[color2]);
-			count+=1;
-		}
-		else {
-			tBoard[x][y].loadTexture(texture[color1]);
-			count+=1;
-		}
-	},this,count);
-	timer.onComplete.add(function(){
-		if (callback && typeof callback === "function" && !gvar.cleaningUp){
-			gvar.cleaningUp = true;
-			var timer= game.time.create(true);
-			timer.add(100,callback,this);
-			timer.start();
-		}
-	});
-	timer.start();
-}
-
 function refreshBoard(){
-	gvar.cleaningUp = true;
+	// sort the del array from highest to lowest
 	del.sort(sortNumber);
 	del.reverse();
+	// so we del the highest (nearer to the bottom) row first
 	while(del.length > 0){
 		var therow = del.pop();
 		for (var i=0; i<gvar.wBoard; i++){
-			// remove the texture
+			// remove the squares
 			board[i][therow] = 0;
 			tBoard[i][therow].destroy();
 			delete tBoard[i][therow];
 		}
-		// move everything down one row
+		// move the whole board down one row
 		for (var i=therow; i>0; i--){
 			for (var j=0; j<gvar.wBoard; j++){
 				board[j][i] = board[j][i-1];
@@ -476,27 +488,50 @@ function refreshBoard(){
 				}
 			}
 		}
-		// set the top row to zero
+		// set the top row to zero, just in case
 		for (var j=0; j<gvar.wBoard; j++){
 			board[j][0] = 0;
 			delete tBoard[j][0];
 		}
 	}
-	gvar.cleaningUp = false;
+	// continue the game
 	gvar.newTileReady = true;
 	gvar.acceptingInput = true;
 }
 
 function clearFull(){
-	gvar.newTileReady = false;
+	// this function will clear the board of the rows that are full
+	// array of squares to flash
+	var toFlash = [];
+	// add all the squares of the full rows to the array
 	for (let therow of del){
 		for (var i=0; i<gvar.wBoard; i++){
-			flashTexture(i,therow,texture.length-1,texture.length-2,refreshBoard);
+			toFlash.push([i,therow]);
 		}
 	}
+	// make a timer to flash
+	var timer = game.time.create(false);
+	var count = 0;
+	// timer will repeat 4 times, each time wait 100s, alternate between black and white color
+	timer.repeat(100,4,function(timer){
+		for (let i of toFlash){
+			if (count % 2 == 0){
+				tBoard[i[0]][i[1]].loadTexture(texture[texture.length-2]);
+			} else {
+				tBoard[i[0]][i[1]].loadTexture(texture[texture.length-1]);
+			}
+		}
+		count += 1;
+	},this);
+	// when timer finishes, call refreshBoard
+	timer.onComplete.add(function(){
+		refreshBoard();
+	});
+	timer.start();
 }
 
 function updateLevel(){
+	// this is the whole gist of the difficulty settings
 	if (gvar.score < 3000){ gvar.level=1; gvar.scoreMulti=1; gvar.diffTimer=1500; }
 	else if (gvar.score < 6000){ gvar.level=2; gvar.scoreMulti=1; gvar.diffTimer=1000; }
 	else if (gvar.score < 11000){ gvar.level=3; gvar.scoreMulti=2; gvar.diffTimer=750; }
@@ -515,14 +550,17 @@ function updateLevel(){
 }
 
 function commit(){
+	// first, disable input
 	gvar.acceptingInput = false;
+	// delete any timer on active tile
 	aTile.timer.destroy();
-	// keep on lowering the active tile until cannot do it anymore
+	// calculate how far the active tile is from the bottom
 	var count = 0;
 	while(itsOkayToGoDown(aTile)){
 		aTile.y += 1;
 		count += 1;
 	}
+	// add that to the score
 	gvar.score+=count*gvar.scoreMulti;
 	// now we create new textures in the same place
 	for (var i=0; i<aTile.sq.length; i++){
@@ -553,6 +591,7 @@ function commit(){
 		gvar.justScored = true;
 		// update the level
 		updateLevel();
+		// clear the full rows
 		clearFull();
 	}
 	else {
@@ -605,8 +644,11 @@ function processInput(context,s){
 			return;
 		}
 	} else if (arguments[2] == 'touch'){
+		// if game havent' started
 		if (gvar.firstTile){
+			// draw the touch guides on the sides
 			touchGuide();
+			// start the game
 			startGame();
 			return;
 		}
@@ -618,13 +660,17 @@ function processInput(context,s){
 			px = arguments[0].x;
 			py = arguments[0].y;
 			if (py < gvar.hudPos.yControlPause){
+				// the top part: pause the game
 				togglePause();
 			} else if (py < gvar.hudPos.yControlRotate){
+				// rotate the tile
 				rotateRight();
 			} else if (py < gvar.hudPos.yControlLR){
+				// move the tile left or right
 				if (px / game.width < 0.5) moveLeft();
 				else moveRight();
 			} else {
+				// commit the tile
 				commit();
 			}
 		}
@@ -636,6 +682,8 @@ function processInput(context,s){
 }
 
 function touchGuide(){
+	// the various lines and texts on the sides to show which touch region is which
+	// i'm too lazy to comment everything in here
 	hud.line1 = game.add.graphics(0,0);
 	hud.line1.beginFill(0x000000,0);
 	hud.line1.lineStyle(2,0xffffff,1);
@@ -701,17 +749,20 @@ function touchGuide(){
 }
 
 function startGame(){
+	// destroy any unnecessary leftover HUD elements
 	if (hud.tutorial) hud.tutorial.destroy();
 	if (hud.tutText) hud.tutText.destroy();
 	if (hud.touchButton) hud.touchButton.destroy();
 	if (hud.touchButtonReal) hud.touchButtonReal.destroy();
 	if (hud.HSButton) hud.HSButton.destroy();
 	if (hud.HSButtonReal) hud.HSButtonReal.destroy();
-	game.pause = false;
 
+	// some starting variables
+	game.pause = false;
 	gvar.newTileReady = true;
 	gvar.acceptingInput = true;
 
+	// the four lines showing the boundaries of the board
 	hud.gameField = game.add.graphics(0,0);
 	hud.gameField.beginFill(0x000000,0);
 	hud.gameField.lineStyle(2,0xffffff,1);
@@ -721,6 +772,7 @@ function startGame(){
 	hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
 	hud.gameField.endFill();
 
+	// the mask of the board for the active tile
 	hud.gameFieldMask = game.add.graphics(0,0);
 	hud.gameFieldMask.beginFill(0x000000,0);
 	hud.gameFieldMask.lineStyle(2,0xffffff,1);
@@ -730,7 +782,7 @@ function startGame(){
 	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
 	hud.gameFieldMask.endFill();
 
-	// get the highscore
+	// get the highscore from a GET query
 	$.get( "/z/getHighScore", function( data ) {
 		if (data.weekly){
 			var weekly = data.weekly;
@@ -741,7 +793,7 @@ function startGame(){
 		}
 	});
 
-
+	// the texts up top
 	hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
 	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
 	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'arcadefont','score:   ',15);
@@ -749,6 +801,7 @@ function startGame(){
 	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'arcadefont','-- paused --',30);
 	hud.pauseText.visible = false;
 
+	// keyboard events
 	var keyup = game.input.keyboard.addKey(Phaser.Keyboard.UP);
 	keyup.onDown.add(processInput, this, 0, 'up');
 	var keyleft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
@@ -762,16 +815,21 @@ function startGame(){
 }
 
 function create() {
-	// generate all the texture
+	// this function will show the menu
+
+	// generate all the texture before hand
 	for (var i=0; i<COLOR.length; i++){
 		var tmp = drawASquare(0,0,COLOR[i]);
 		texture.push(tmp.generateTexture());
 		tmp.destroy();
 	}
 
+	// dont' make tiles and don't accept input just yet
+	game.pause = true;
 	gvar.newTileReady = false;
 	gvar.acceptingInput = false;
 
+	// button for touch mode
 	hud.touchButtonReal = game.add.graphics(0,0);
 	hud.touchButtonReal.beginFill(0x000000);
 	hud.touchButtonReal.lineStyle(0,0,0);
@@ -781,6 +839,7 @@ function create() {
 	hud.touchButtonReal.lineTo(gvar.hudPos.xTouchButton+800,gvar.hudPos.yTouchButton-50);
 	hud.touchButtonReal.endFill();
 
+	// button to go to highscore
 	hud.HSButtonReal = game.add.graphics(0,0);
 	hud.HSButtonReal.beginFill(0x000000);
 	hud.HSButtonReal.lineStyle(0,0,0);
@@ -790,6 +849,7 @@ function create() {
 	hud.HSButtonReal.lineTo(gvar.hudPos.xHSButton+800,gvar.hudPos.yHSButton-50);
 	hud.HSButtonReal.endFill();
 
+	// the texts
 	hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','welcome to tetris!\n\nkeyboard controls:\n\nup - rotate\nleft - left\nright - right\ndown - lock in\nesc - pause\n\npress enter to start game',15);
 	hud.touchButton = game.add.bitmapText(gvar.hudPos.xTouchButton,gvar.hudPos.yTouchButton,'arcadefont','or tap\n-here-\nif you are on mobile',15);
 	hud.HSButton = game.add.bitmapText(gvar.hudPos.xHSButton,gvar.hudPos.yHSButton,'arcadefont','tap or click\n-here-\nto see highscores',15);
@@ -797,9 +857,10 @@ function create() {
 	hud.touchButton.align = 'center';
 	hud.HSButton.align = 'center';
 
-
+	// add event listener to the buttons
 	hud.touchButtonReal.inputEnabled = true;
 	hud.touchButtonReal.events.onInputUp.add(function(){
+		// when go into touch mode, first show the touch tutorial, then tap to start the game
 		hud.tutText.destroy();
 		hud.tutorial = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'tutoverlay');
 		hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','touch anywhere to start game',15);
@@ -813,6 +874,7 @@ function create() {
 
 	hud.HSButtonReal.inputEnabled = true;
 	hud.HSButtonReal.events.onInputUp.add(function(){
+		// go to highscore page
 		game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
 		window.location = "/highscore.html";
 		window.open('/highscore.html','_self');
@@ -821,24 +883,22 @@ function create() {
 		window.open('http://tetris.anythingbut.me/highscore.html','_self');
 	},this);
 
-	game.pause = true;
-	//game.input.mouse.capture = true;
+	// listen to enter to start the game in keyboard mode
 	var keyenter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 	keyenter.onDown.add(processInput, this, 0, 'enter');
 }
 
 function getRandomType(){
+	// this function will generate a random type for the next tile. Chances are dependant on difficulty
 	var result = 0;
-	//var max = Math.max.apply(Math,stats);
-	// construct an array
-	if (gvar.level < 8) { var chance = [ITILE,ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
-	else if (gvar.level < 15) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
-	else if (gvar.level < 19) { var chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
-	else if (gvar.level < 25){ var chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
-	else { var chance = [ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
-	//for (var i=0; i<7; i++)
-	//	for (var j=0; j< (max-stats[i]+1)+Math.floor((max-stats[i])*0.75); j++) chance.push(i);
-	// make sure no same tile consecutively (only if level is < 7)
+	var chance;
+	// construct the chance array for the ratio of the tiles
+	if (gvar.level < 8) { chance = [ITILE,ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
+	else if (gvar.level < 15) { chance = [ITILE,ITILE,JTILE,JTILE,LTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
+	else if (gvar.level < 19) { chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE,TTILE]; }
+	else if (gvar.level < 23){ chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
+	else { chance = [ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
+	// make sure no same tile appear consecutively (only if level is < 8)
 	if (gvar.level < 8){
 		for (var i=0; i<chance.length; i++){
 			while (chance[i] == aTile.type){
@@ -878,16 +938,19 @@ function gameOver(){
 		gvar.gameEnded = true;
 		togglePause();
 		gvar.newTileReady = false;
+		// destroy all the text and the next Tile
 		hud.scoreText.destroy();
 		hud.levelText.destroy();
 		hud.nextText.destroy();
 		hud.highText.destroy();
 		hud.pauseText.destroy();
 		for (let i of nTile.sq) i.kill();
+		// show the game over text
 		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds',15);
 		hud.gameOverText.align = 'center';
 		hud.tutText.align = 'center';
 
+		// immediately try to redirect
 		localStorage.setItem('score',gvar.score);
 		var d = new Date().getTime();
 		localStorage.setItem('time',d);
@@ -898,7 +961,4 @@ function gameOver(){
 		window.location = "http://tetris.anythingbut.me/highscore.html";
 		window.open('http://tetris.anythingbut.me/highscore.html','_self');
 	}
-}
-
-function render() {
 }
