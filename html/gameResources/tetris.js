@@ -946,7 +946,7 @@ function gameOver(){
 		hud.pauseText.destroy();
 		for (let i of nTile.sq) i.kill();
 		// show the game over text
-		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds',15);
+		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds\n\nif page doesnt load\nclose and reopen tab',15);
 		hud.gameOverText.align = 'center';
 		hud.tutText.align = 'center';
 

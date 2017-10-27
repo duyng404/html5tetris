@@ -28,8 +28,10 @@ function EndGameController($route,$window,$http){
 	vm.score = $window.localStorage.score;
 	vm.time = $window.localStorage.time;
 	// did the user still have unsaved score?
-	vm.justPlayed = false;
-	if (vm.score && vm.time) vm.justPlayed = true;
+	vm.hasScore = false;
+	// can the user save score?
+	vm.canSave = false;
+	if (vm.score && vm.time) vm.hasScore = true;
 	// if there is any error stored in sessionStorage
 	if ($window.sessionStorage.error) {
 		vm.error = $window.sessionStorage.error;
@@ -37,7 +39,7 @@ function EndGameController($route,$window,$http){
 	}
 
 	// if user has unsaved score, then attempt to POST it
-	if (vm.justPlayed){
+	if (vm.hasScore){
 	// prepare the data to POST
 		var postData = {
 			score: vm.score,
@@ -94,6 +96,11 @@ function EndGameController($route,$window,$http){
 			}
 			// calculate the next Update
 			vm.nextUpdate = moment(parseInt(res.data.weeklyUpdated)+604800000).fromNow();
+			// can the user save score?
+			if (vm.hasScore && (vm.alltime.length<20 || parseInt(vm.alltime[vm.alltime.length-1].score) < parseInt(vm.score) || vm.weekly.length<10 || parseInt(vm.weekly[vm.weekly.length-1].score) < parseInt(vm.score))){
+				console.log(vm.weekly[vm.weekly.length-1].score < vm.score,vm.weekly[vm.weekly.length-1].score);
+				vm.canSave = true;
+			}
 		}).catch(function(err){
 			$window.sessionStorage.error = "There were some errors while trying to retrieve highscore from the server. Please try again later. Here are some details: " + err;
 		});

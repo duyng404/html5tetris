@@ -2,12 +2,12 @@
 	{{ vm.error }}
 </div>
 
-<div id="thankyoubox" ng-if="vm.justPlayed">
+<div id="thankyoubox" ng-if="vm.hasScore">
 	<p>--- GAME OVER ---</p>
 	<p>THANK YOU FOR PLAYING</p>
 	<p>YOUR SCORE IS<br/ >{{ vm.score }}</p>
 
-	<div id="inputbox" ng-if="vm.justPlayed">
+	<div id="inputbox" ng-if="vm.canSave">
 		<p>ENTER YOUR NAME FOR HIGHSCORE</p>
 
 		<form name="vm.nameInputForm" ng-submit="vm.addScore()">
@@ -16,11 +16,12 @@
 		</form>
 	</div>
 
-	<p><< or <button class="nobutton" ng-click="vm.playAgain()">PLAY AGAIN</button></p>
+	<p ng-if="vm.canSave">&lt;&lt; or <button class="nobutton" ng-click="vm.playAgain()">PLAY AGAIN</button></p>
+	<p ng-if="!vm.canSave">&lt;&lt; <button class="nobutton" ng-click="vm.playAgain()">PLAY AGAIN</button></p>
 
 </div>
 
-<div id="thankyoubox" ng-if="!vm.justPlayed">
+<div id="thankyoubox" ng-if="!vm.hasScore">
 	<p>WELCOME TO TETRIS</p>
 	<p><a href="/" target="_self">&lt;&lt; CLICK HERE TO PLAY</a></p>
 </div>
