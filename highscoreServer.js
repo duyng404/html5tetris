@@ -7,7 +7,8 @@ var moment = require('moment');
 var app = express();
 
 // the highscore database is only a json file at root
-const HIGHSCOREFILE = './highscore.json'
+//const HIGHSCOREFILE = './highscore.json'
+const HIGHSCOREFILE = path.join(__dirname,'/highscore.json');
 
 // this server gonna run on this port
 app.set('port', 8080);
@@ -95,8 +96,8 @@ function postHighScore(req,res){
 			// make a new object to be inserted
 			var newScore = {
 				"name": "anonymous139139",
-				"score": req.body.score,
-				"time": req.body.time,
+				"score": parseInt(req.body.score),
+				"time": parseInt(req.body.time),
 				// internal: are we writing this into json or not
 				"posting": true
 			};
@@ -124,37 +125,42 @@ function postHighScore(req,res){
 			// check if score is from before reset, if yes then disable posting
 			if (weeklyUpdated > newScore.time)
 				newScore.posting = false;
-			// trim each scoreboard if it has more than maximum amount
-			while (alltime.length > 20){
-				var a = getLowest(alltime);
-				alltime.splice(a,1);
-			}
-			while (weekly.length > 10){
-				var a = getLowest(weekly);
-				weekly.splice(a,1);
-			}
-			// get the lowest score of the scoreboard
-			var minAlltime = getLowest(alltime);
-			// if scoreboard is not full then just push
-			if (alltime.length < 20 && newScore.posting){
-				alltime.push(newScore);
-			}
-			// if scoreboard is full, compare with the lowest score then push
-			else if (parseInt(newScore.score) > parseInt(alltime[minAlltime].score) && newScore.posting){
-				alltime.splice(minAlltime,1);
-				alltime.push(newScore);
-			}
-			// do the same to weekly scoreboard
-			// get the lowest score of the scoreboard
-			var minWeekly = getLowest(weekly);
-			// if scoreboard is not full then just push
-			if (weekly.length < 10 && newScore.posting){
-				weekly.push(newScore);
-			}
-			// if scoreboard is full, compare with the lowest score then push
-			else if (parseInt(newScore.score) > parseInt(weekly[minWeekly].score) && newScore.posting){
-				weekly.splice(minWeekly,1);
-				weekly.push(newScore);
+			// legit time or not?? time cannot come from the future!
+			if (newScore.time - moment.valueOf() > 600000)
+				newScore.posting = false;
+			if (newScore.posting){
+				// trim each scoreboard if it has more than maximum amount
+				while (alltime.length > 20){
+					var a = getLowest(alltime);
+					alltime.splice(a,1);
+				}
+				while (weekly.length > 10){
+					var a = getLowest(weekly);
+					weekly.splice(a,1);
+				}
+				// get the lowest score of the scoreboard
+				var minAlltime = getLowest(alltime);
+				// if scoreboard is not full then just push
+				if (alltime.length < 20){
+					alltime.push(newScore);
+				}
+				// if scoreboard is full, compare with the lowest score then push
+				else if (parseInt(newScore.score) > parseInt(alltime[minAlltime].score)){
+					alltime.splice(minAlltime,1);
+					alltime.push(newScore);
+				}
+				// do the same to weekly scoreboard
+				// get the lowest score of the scoreboard
+				var minWeekly = getLowest(weekly);
+				// if scoreboard is not full then just push
+				if (weekly.length < 10 && newScore.posting){
+					weekly.push(newScore);
+				}
+				// if scoreboard is full, compare with the lowest score then push
+				else if (parseInt(newScore.score) > parseInt(weekly[minWeekly].score)){
+					weekly.splice(minWeekly,1);
+					weekly.push(newScore);
+				}
 			}
 			// new data to write back into json
 			var newobj = {

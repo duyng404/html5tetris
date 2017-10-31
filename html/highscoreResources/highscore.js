@@ -97,7 +97,7 @@ function EndGameController($route,$window,$http){
 			// calculate the next Update
 			vm.nextUpdate = moment(parseInt(res.data.weeklyUpdated)+604800000).fromNow();
 			// can the user save score?
-			if (vm.hasScore && (vm.alltime.length<20 || parseInt(vm.alltime[vm.alltime.length-1].score) < parseInt(vm.score) || vm.weekly.length<10 || parseInt(vm.weekly[vm.weekly.length-1].score) < parseInt(vm.score))){
+			if (vm.hasScore && (vm.alltime.length<20 || parseInt(vm.alltime[vm.alltime.length-1].score) <= parseInt(vm.score) || vm.weekly.length<10 || parseInt(vm.weekly[vm.weekly.length-1].score) <= parseInt(vm.score))){
 				console.log(vm.weekly[vm.weekly.length-1].score < vm.score,vm.weekly[vm.weekly.length-1].score);
 				vm.canSave = true;
 			}

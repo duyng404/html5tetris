@@ -950,15 +950,20 @@ function gameOver(){
 		hud.gameOverText.align = 'center';
 		hud.tutText.align = 'center';
 
-		// immediately try to redirect
-		localStorage.setItem('score',gvar.score);
-		var d = new Date().getTime();
-		localStorage.setItem('time',d);
-		game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
-		window.location = "/highscore.html";
-		window.open('/highscore.html','_self');
-		game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
-		window.location = "http://tetris.anythingbut.me/highscore.html";
-		window.open('http://tetris.anythingbut.me/highscore.html','_self');
+
+		// get current epoch
+		$.get( "http://icanhazepoch.com", function(data) {
+			console.log(data*1000);
+			// immediately try to redirect
+			localStorage.setItem('score',gvar.score);
+			var d = data*1000;
+			localStorage.setItem('time',d);
+			game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
+			window.location = "/highscore.html";
+			window.open('/highscore.html','_self');
+			game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
+			window.location = "http://tetris.anythingbut.me/highscore.html";
+			window.open('http://tetris.anythingbut.me/highscore.html','_self');
+		});
 	}
 }
