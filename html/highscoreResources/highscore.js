@@ -94,6 +94,18 @@ function EndGameController($route,$window,$http){
 					return b.score - a.score;
 				});
 			}
+			vm.recent = res.data.recent;
+			// sort the recent scores from latest to earliest
+			vm.recent.sort(function(a,b){
+				return b.time - a.time;
+			});
+			for (let i of vm.recent){
+				if (i.name == 'anonymous') i.name = 'no name';
+				// also display the time correctly
+				if (moment().valueOf() - i.time < 172800000)
+					i.time = moment(parseInt(i.time)).fromNow();
+				else i.time = moment(parseInt(i.time)).format('MMM D');
+			}
 			// calculate the next Update
 			vm.nextUpdate = moment(parseInt(res.data.weeklyUpdated)+604800000).fromNow();
 			// can the user save score?

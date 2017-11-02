@@ -209,6 +209,22 @@ body{
 	color: #555;
 }
 
+.recent{
+	justify-content: center !important;
+}
+
+.recent-left{
+	text-align: right;
+	margin-right: 10px;
+	width: 70%;
+}
+
+.recent-right{
+	font-size: 0.6em;
+	color: #666;
+	width: 30%
+}
+
 #errorbox{
 	width: 100%;
 	padding: 10px;

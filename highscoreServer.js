@@ -53,6 +53,15 @@ function getLowest(scoreboard){
 	return min;
 }
 
+function getEarliest(scoreboard){
+	min = 0;
+	for (var i=1; i<scoreboard.length; i++){
+		if (parseInt(scoreboard[i].time) < parseInt(scoreboard[min].time))
+			min=i;
+	}
+	return min;
+}
+
 // Getting all the scores. Filtering out the anonymous.
 // So whenever player finishes playing, it will automatically save the score under
 // the name "anonymous139139" in database. It will then be displayed as "no name"
@@ -71,6 +80,11 @@ function getHighScore(req,res){
 			}
 			// change the "anonoymous139139" to "anonymous"
 			for (let i of obj.alltime){
+				if (i.name == 'anonymous') i.name = 'xAnonymous';
+				if (i.name == 'anonymous139139') i.name = 'anonymous';
+			}
+			// for recent
+			for (let i of obj.recent){
 				if (i.name == 'anonymous') i.name = 'xAnonymous';
 				if (i.name == 'anonymous139139') i.name = 'anonymous';
 			}
@@ -105,6 +119,11 @@ function postHighScore(req,res){
 			var alltime = obj.alltime;
 			var weekly = obj.weekly;
 			var weeklyUpdated = obj.weeklyUpdated;
+			var recent = obj.recent;
+			if (!recent) recent = [];
+			if (!alltime) alltime = [];
+			if (!weekly) weekly = [];
+			if (!weeklyUpdated) weeklyUpdated = moment.valueOf();
 			// check if weekly is due reset, then reset it
 			if (moment().valueOf() - weeklyUpdated > 604800000){
 				weeklyUpdated += 604800000;
@@ -118,16 +137,30 @@ function postHighScore(req,res){
 			}
 			for (let i of weekly){
 				if (i.name == 'anonymous139139' && i.score == newScore.score && i.time == newScore.time){
-					console.log('this score was here before');
 					newScore.posting = false;
 				}
+			}
+			for (let i of recent){
+				if (i.score == newScore.score && i.time == newScore.time){
+					newScore.posting = false;
+				}
+			}
+			// legit time or not?? time cannot come from the future!
+			if (newScore.time - moment.valueOf() > 600000)
+				newScore.posting = false;
+			// add it to the recent score first
+			if (newScore.posting){
+				// trim if more than 9
+				while (recent.length > 9){
+					var a = getEarliest(recent);
+					recent.splice(a,1);
+				}
+				recent.push(newScore);
 			}
 			// check if score is from before reset, if yes then disable posting
 			if (weeklyUpdated > newScore.time)
 				newScore.posting = false;
-			// legit time or not?? time cannot come from the future!
-			if (newScore.time - moment.valueOf() > 600000)
-				newScore.posting = false;
+			// now add it to the weekly and alltime score
 			if (newScore.posting){
 				// trim each scoreboard if it has more than maximum amount
 				while (alltime.length > 20){
@@ -166,7 +199,8 @@ function postHighScore(req,res){
 			var newobj = {
 				"alltime": alltime,
 				"weeklyUpdated": weeklyUpdated,
-				"weekly": weekly
+				"weekly": weekly,
+				"recent": recent
 			}
 			jsonfile.writeFile(HIGHSCOREFILE,newobj, {spaces: 4}, function(err){
 				if (err){
@@ -198,6 +232,11 @@ function updateHighScore(req,res){
 			var alltime = obj.alltime;
 			var weekly = obj.weekly;
 			var weeklyUpdated = obj.weeklyUpdated;
+			var recent = obj.recent;
+			if (!recent) recent = [];
+			if (!alltime) alltime = [];
+			if (!weekly) weekly = [];
+			if (!weeklyUpdated) weeklyUpdated = moment.valueOf();
 			// look for the score and update it
 			for (let i of alltime){
 				if (i.name == "anonymous139139" && i.time == newScore.time && i.score == newScore.score){
@@ -211,13 +250,20 @@ function updateHighScore(req,res){
 					break;
 				}
 			}
+			for (let i of recent){
+				if (i.name == "anonymous139139" && i.time == newScore.time && i.score == newScore.score){
+					i.name = newScore.name;
+					break;
+				}
+			}
 			// write back to json file
 			var newobj = {
 				"alltime": alltime,
 				"weeklyUpdated": weeklyUpdated,
-				"weekly": weekly
+				"weekly": weekly,
+				"recent": recent
 			}
-			jsonfile.writeFile(HIGHSCOREFILE,newobj, function(err){
+			jsonfile.writeFile(HIGHSCOREFILE,newobj, {spaces: 4}, function(err){
 				if (err){
 					res.status(500).json(err);
 				} else {

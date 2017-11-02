@@ -878,9 +878,9 @@ function create() {
 		game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
 		window.location = "/highscore.html";
 		window.open('/highscore.html','_self');
-		game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
-		window.location = "http://tetris.anythingbut.me/highscore.html";
-		window.open('http://tetris.anythingbut.me/highscore.html','_self');
+		//game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
+		//window.location = "http://tetris.anythingbut.me/highscore.html";
+		//window.open('http://tetris.anythingbut.me/highscore.html','_self');
 	},this);
 
 	// listen to enter to start the game in keyboard mode
@@ -961,9 +961,9 @@ function gameOver(){
 			game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
 			window.location = "/highscore.html";
 			window.open('/highscore.html','_self');
-			game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
-			window.location = "http://tetris.anythingbut.me/highscore.html";
-			window.open('http://tetris.anythingbut.me/highscore.html','_self');
+			//game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
+			//window.location = "http://tetris.anythingbut.me/highscore.html";
+			//window.open('http://tetris.anythingbut.me/highscore.html','_self');
 		});
 	}
 }

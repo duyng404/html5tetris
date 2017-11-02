@@ -78,6 +78,16 @@
 	</div>
 </div>
 
+<div class="scoreboard" ng-if="vm.recent">
+	<h2>RECENT SCORES</h2>
+	<div ng-repeat="entry in vm.recent track by $index">
+		<div class="row recent">
+			<div class="recent-left"><span ng-if="entry.name != 'no name'">{{ entry.name }} --- </span>{{ entry.score }}</div>
+			<div class="recent-right">{{ entry.time }}</div>
+		</div>
+	</div>
+</div>
+
 <p class="divider">----- (^v^*) -----</p>
 
 <div id="info">
