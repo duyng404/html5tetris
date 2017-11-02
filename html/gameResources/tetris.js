@@ -899,7 +899,7 @@ function getRandomType(){
 	else if (gvar.level < 23){ chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
 	else { chance = [ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
 	// make sure no same tile appear consecutively (only if level is < 8)
-	if (gvar.level < 8){
+	if (gvar.level < 20){
 		for (var i=0; i<chance.length; i++){
 			while (chance[i] == aTile.type){
 				chance.splice(i,1);
