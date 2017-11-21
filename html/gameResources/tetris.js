@@ -69,59 +69,59 @@ var game;
 // global variables
 var gvar = {
     // game sizes
-    gameWidth: 600,
-	gameHeight: 1000,
+    gameWidth: 360,
+	gameHeight: 600,
 	// spawn position
 	xSpawn: 4,
 	ySpawn: 1,
 	// next tile position, in real pixels
-	xNext: 120,
-	yNext: 35,
+	xNext: 60,
+	yNext: 17,
 	// board sizes
 	wBoard: 10,
 	hBoard: 17,
 	// top left corner of board (in pixels)
-	xBoard: 50,
-	yBoard: 100,
+	xBoard: 30,
+	yBoard: 60,
 	// position of HUD elements
 	hudPos: {
 		// Next text
-		xNext: 70,
-		yNext: 7,
+		xNext: 35,
+		yNext: 3,
 		// Score text
-		xScore: 280,
-		yScore: 25,
+		xScore: 140,
+		yScore: 12,
 		// Level text
-		xLevel: 280,
-		yLevel: 60,
+		xLevel: 140,
+		yLevel: 30,
 		// Highscore text
-		xHigh: 280,
-		yHigh: 95,
+		xHigh: 140,
+		yHigh: 47,
 		// Pause text
-		xPause: 125,
-		yPause: 500,
+		xPause: 62,
+		yPause: 250,
 		// the touch tutorial image
-		xTut: 50,
+		xTut: 25,
 		yTut: 0,
 		// welcome message text
-		xTutText: 120,
-		yTutText: 350,
+		xTutText: 60,
+		yTutText: 175,
 		// message that says "tap here for touch input"
-		xTouchButton: 140,
-		yTouchButton: 600,
+		xTouchButton: 70,
+		yTouchButton: 300,
 		// message that says "tap here for highscore"
-		xHSButton: 160,
-		yHSButton: 750,
+		xHSButton: 80,
+		yHSButton: 375,
 		// Game Over text
-		xGameOver: 70,
-		yGameOver: 15,
+		xGameOver: 35,
+		yGameOver: 7,
 		// boundaries of the touch inputs
-		yControlPause: 160,
-		yControlRotate: 600,
-		yControlLR: 900,
+		yControlPause: 80,
+		yControlRotate: 300,
+		yControlLR: 450,
 	},
 	// tile size
-	wTile: 50,
+	wTile: 30,
 	// ready to make a new tile or not
 	newTileReady: false,
 	// accepting input or not
@@ -237,10 +237,12 @@ window.onload = function(){
 		}
 	}
     // creation of the game itself
-	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update});
+	game = new Phaser.Game(gvar.gameWidth, gvar.gameHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render});
 }
 
 function preload() {
+	// showing fps
+	game.time.advancedTiming = true;
 	// the font
 	game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
 	// touch guide image
@@ -321,6 +323,7 @@ function makeNewTile(){
 	aTile.timer = game.time.create(false);
 	aTile.timer.loop(gvar.diffTimer,lowerTile,this);
 	aTile.timer.start();
+	gvar.acceptingInput = true;
 }
 
 function transformTile(){
@@ -496,7 +499,6 @@ function refreshBoard(){
 	}
 	// continue the game
 	gvar.newTileReady = true;
-	gvar.acceptingInput = true;
 }
 
 function clearFull(){
@@ -593,8 +595,7 @@ function commit(){
 		updateLevel();
 		// clear the full rows
 		clearFull();
-	}
-	else {
+	} else {
 		// end game condition
 		for (var i=0; i<gvar.wBoard; i++){
 			if (board[i][1] == 1) gameOver();
@@ -602,7 +603,6 @@ function commit(){
 		// ready to make a new tile
 		gvar.justScored = false;
 		gvar.newTileReady = true;
-		gvar.acceptingInput = true;
 	}
 }
 
@@ -726,24 +726,24 @@ function touchGuide(){
 	hud.line6.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile+50,gvar.hudPos.yControlRotate);
 	hud.line6.endFill();
 
-	hud.rotateText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlPause+100,'arcadefont','rotate',15);
+	hud.rotateText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlPause+100,'arcadefont','rotate',7);
 	hud.rotateText1.anchor.setTo(0,0);
 	hud.rotateText1.angle += 90;
-	hud.rotateText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlPause+100,'arcadefont','rotate',15);
+	hud.rotateText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlPause+100,'arcadefont','rotate',7);
 	hud.rotateText2.anchor.setTo(1,1);
 	hud.rotateText2.angle -= 90;
 
-	hud.leftText = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlRotate+100,'arcadefont','left',15);
+	hud.leftText = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlRotate+100,'arcadefont','left',7);
 	hud.leftText.anchor.setTo(0,0);
 	hud.leftText.angle += 90;
-	hud.rightText = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlRotate+100,'arcadefont','right',15);
+	hud.rightText = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlRotate+100,'arcadefont','right',7);
 	hud.rightText.anchor.setTo(1,1);
 	hud.rightText.angle -= 90;
 
-	hud.downText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlLR+25,'arcadefont','down',15);
+	hud.downText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlLR+25,'arcadefont','down',7);
 	hud.downText1.anchor.setTo(0,0);
 	hud.downText1.angle += 90;
-	hud.downText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlLR+25,'arcadefont','down',15);
+	hud.downText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlLR+25,'arcadefont','down',7);
 	hud.downText2.anchor.setTo(1,1);
 	hud.downText2.angle -= 90;
 }
@@ -810,6 +810,8 @@ function startGame(){
 	keyright.onDown.add(processInput, this, 0, 'right');
 	var keydown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
 	keydown.onDown.add(processInput, this, 0, 'down');
+	var keyspace = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+	keyspace.onDown.add(processInput, this, 0, 'down');
 	var keyesc = game.input.keyboard.addKey(Phaser.Keyboard.ESC);
 	keyesc.onDown.add(processInput, this, 0, 'esc');
 }
@@ -899,16 +901,13 @@ function getRandomType(){
 	else if (gvar.level < 23){ chance = [ITILE,ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
 	else { chance = [ITILE,JTILE,LTILE,OTILE,STILE,ZTILE,TTILE]; }
 	// make sure no same tile appear consecutively (only if level is < 8)
-	if (gvar.level < 20){
-		for (var i=0; i<chance.length; i++){
-			while (chance[i] == aTile.type){
-				chance.splice(i,1);
-			}
+	for (var i=0; i<chance.length; i++){
+		while (chance[i] == aTile.type){
+			chance.splice(i,1);
 		}
 	}
 	shuffle(chance);
 	result = chance[Math.floor(Math.random() * chance.length)];
-	stats[result]+=1;
 	return result;
 }
 
@@ -946,24 +945,26 @@ function gameOver(){
 		hud.pauseText.destroy();
 		for (let i of nTile.sq) i.kill();
 		// show the game over text
-		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds\n\nif page doesnt load\nclose and reopen tab',15);
+		hud.gameOverText = game.add.bitmapText(gvar.hudPos.xGameOver,gvar.hudPos.yGameOver,'arcadefont','-- game over --\n\nthank you for playing\n\nyour score is\n'+gvar.score+'\n\nloading highscore in 2 seconds\n\nif page doesnt load\nclose and reopen tab',7);
 		hud.gameOverText.align = 'center';
 		hud.tutText.align = 'center';
 
 
 		// get current epoch
 		$.get( "http://icanhazepoch.com", function(data) {
-			console.log(data*1000);
 			// immediately try to redirect
 			localStorage.setItem('score',gvar.score);
 			var d = data*1000;
 			localStorage.setItem('time',d);
 			game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
-			window.location = "/highscore.html";
-			window.open('/highscore.html','_self');
 			//game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
 			//window.location = "http://tetris.anythingbut.me/highscore.html";
 			//window.open('http://tetris.anythingbut.me/highscore.html','_self');
 		});
 	}
+}
+
+function render(){
+	this.game.debug.cameraInfo(this.game.camera, 32, 32);
+	game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
 }
