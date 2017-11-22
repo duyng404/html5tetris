@@ -1,84 +1,138 @@
 {"frames": [
 
 {
-	"filename": "blacktile.png",
-	"frame": {"x":0,"y":0,"w":30,"h":30},
+	"filename": "itile",
+	"frame": {"x":48,"y":65,"w":30,"h":30},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "itile.png",
-	"frame": {"x":30,"y":0,"w":30,"h":30},
+	"filename": "jtile",
+	"frame": {"x":1,"y":82,"w":30,"h":30},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "jtile.png",
-	"frame": {"x":60,"y":0,"w":30,"h":30},
+	"filename": "ltile",
+	"frame": {"x":80,"y":65,"w":30,"h":30},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "ltile.png",
-	"frame": {"x":90,"y":0,"w":30,"h":30},
+	"filename": "nextitile",
+	"frame": {"x":1,"y":33,"w":60,"h":15},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"spriteSourceSize": {"x":0,"y":0,"w":60,"h":15},
+	"sourceSize": {"w":60,"h":15},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "otile.png",
-	"frame": {"x":120,"y":0,"w":30,"h":30},
+	"filename": "nextjtile",
+	"frame": {"x":1,"y":1,"w":45,"h":30},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"spriteSourceSize": {"x":0,"y":0,"w":45,"h":30},
+	"sourceSize": {"w":45,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "stile.png",
-	"frame": {"x":150,"y":0,"w":30,"h":30},
+	"filename": "nextltile",
+	"frame": {"x":48,"y":1,"w":45,"h":30},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"spriteSourceSize": {"x":0,"y":0,"w":45,"h":30},
+	"sourceSize": {"w":45,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "ttile.png",
-	"frame": {"x":180,"y":0,"w":30,"h":30},
+	"filename": "nextotile",
+	"frame": {"x":110,"y":33,"w":30,"h":30},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "whitetile.png",
-	"frame": {"x":210,"y":0,"w":30,"h":30},
+	"filename": "nextstile",
+	"frame": {"x":63,"y":33,"w":45,"h":30},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"spriteSourceSize": {"x":0,"y":0,"w":45,"h":30},
+	"sourceSize": {"w":45,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "ztile.png",
-	"frame": {"x":240,"y":0,"w":30,"h":30},
+	"filename": "nextttile",
+	"frame": {"x":95,"y":1,"w":45,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":45,"h":30},
+	"sourceSize": {"w":45,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "nextztile",
+	"frame": {"x":1,"y":50,"w":45,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":45,"h":30},
+	"sourceSize": {"w":45,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "otile",
+	"frame": {"x":112,"y":65,"w":30,"h":30},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
-	"sourceSize": {"w":30,"h":30}
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "stile",
+	"frame": {"x":33,"y":97,"w":30,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "ttile",
+	"frame": {"x":65,"y":97,"w":30,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "ztile",
+	"frame": {"x":97,"y":97,"w":30,"h":30},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":30},
+	"sourceSize": {"w":30,"h":30},
+	"pivot": {"x":0.5,"y":0.5}
 }],
 "meta": {
 	"app": "http://www.codeandweb.com/texturepacker",
 	"version": "1.0",
 	"image": "texture.png",
 	"format": "RGBA8888",
-	"size": {"w":270,"h":30},
+	"size": {"w":143,"h":143},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:0bf5640b632282fec90949eedb15f6ef:743f5d2891f8a708339cb21c2c1d51c2:88db1022cd6b660616541d2788fcd4f7$"
+	"smartupdate": "$TexturePacker:SmartUpdate:743f105d435df0ded603776e3e20ccb4:434757ee8a36de542e665b8637db0e15:88db1022cd6b660616541d2788fcd4f7$"
 }
 }

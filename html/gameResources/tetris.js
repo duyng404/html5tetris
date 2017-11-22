@@ -16,7 +16,7 @@ function shuffle(a) {
 
 // tile types
 const ITILE=0; const JTILE=1; const LTILE=2; const OTILE=3; const STILE=4; const TTILE=5; const ZTILE=6;
-const TEXTURENAME=['itile.png','jtile.png','ltile.png','otile.png','stile.png','ttile.png','ztile.png','whitetile.png','blacktile.png'];
+const TEXTURENAME=['itile','jtile','ltile','otile','stile','ttile','ztile','whitetile','blacktile'];
 // tile colors according to the tile. The 2 last ones are for flashing when rows are cleared
 //const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E,0xFFFFFF,0x000000];
 
@@ -162,11 +162,11 @@ var aTile = {
 	timer: undefined
 };
 
-// information of the next tile
+// the next tile: current tile, object pool, and the type
 var nTile = {
-	sq: [],
-	sc: [],
-	type: 0,
+	current: undefined,
+	pool: [],
+	type: 0
 }
 
 // information of the ghost tile
@@ -199,9 +199,6 @@ var del = [];
 
 // array of prefabs texture
 var texture = [];
-
-// statistics of how many tiles have created so far
-var stats = [0,0,0,0,0,0,0];
 
 // texts and information display in the game
 var hud = {};
@@ -251,25 +248,7 @@ function preload() {
 	// touch guide image
 	game.load.image('tutoverlay','./gameResources/tutorial.png');
 	// resize so it fits the screen
-	game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
-}
-
-/* takes in a position on the board, draw a square and return it */
-function drawASquare(x, y, color){
-	// the "real" coordinate in pixels
-	var rx = gvar.xBoard+(x*gvar.wTile);
-	var ry = gvar.yBoard+(y*gvar.wTile);
-	// make a graphic item and start to draw
-	square = game.add.graphics(0,0);
-	square.beginFill(color);
-	square.lineStyle(0,0,0);
-	square.moveTo(rx,ry);
-	square.lineTo(rx+gvar.wTile-1,ry);
-	square.lineTo(rx+gvar.wTile-1,ry+gvar.wTile-1);
-	square.lineTo(rx,ry+gvar.wTile-1);
-	square.lineTo(rx,ry);
-	square.endFill();
-	return square;
+	//game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 }
 
 function placeASquare(x, y, type){
@@ -284,21 +263,15 @@ function placeASquare(x, y, type){
 }
 
 function updateNextTile(type){
-	// get the first state of the specified type
-	nTile.sc = STATE[type][0].slice();
-	// if this is the first tile, just populate sq
-	if (gvar.firstTile){
-		for (var i=0; i<nTile.sc.length; i++){
-			nTile.sq.push(placeASquare(0,0,type));
-		}
-	}
-	for (var i=0; i<nTile.sq.length; i++){
-		// replace the texture with the correct one
-		nTile.sq[i].loadTexture('theatlas',TEXTURENAME[type]);
-		// also reposition it
-		nTile.sq[i].x = gvar.xNext + nTile.sc[i][0] * gvar.wTile;
-		nTile.sq[i].y = gvar.yNext + nTile.sc[i][1] * gvar.wTile;
-	}
+	// kill the current one, if there is any
+	if (nTile.current) nTile.current.kill();
+	// if there is no same tile in the pool
+	if (!nTile.pool[type])
+		// then create it
+		nTile.pool[type] = game.add.sprite(0,0,'theatlas','next'+TEXTURENAME[type]);
+	// get from the pool and reset it
+	nTile.current = nTile.pool[type];
+	nTile.current.reset(gvar.xNext,gvar.yNext);
 	// update the type
 	nTile.type = type;
 }
@@ -471,7 +444,7 @@ function checkRowFull(y){
 	}
 }
 
-function refreshBoard(){
+function clearFull(){
 	// sort the del array from highest to lowest
 	del.sort(sortNumber);
 	del.reverse();
@@ -503,38 +476,6 @@ function refreshBoard(){
 	}
 	// continue the game
 	gvar.newTileReady = true;
-}
-
-function clearFull(){
-	// this function will clear the board of the rows that are full
-	// array of squares to flash
-	var toFlash = [];
-	// add all the squares of the full rows to the array
-	for (let therow of del){
-		for (var i=0; i<gvar.wBoard; i++){
-			toFlash.push([i,therow]);
-		}
-	}
-	// make a timer to flash
-	var timer = game.time.create(false);
-	var count = 0;
-	// timer will repeat 4 times, each time wait 100s, alternate between black and white color
-	timer.repeat(100,4,function(timer){
-		for (let i of toFlash){
-			if (count % 2 == 0){
-				//tBoard[i[0]][i[1]].loadTexture(texture[texture.length-2]);
-				tBoard[i[0]][i[1]].loadTexture('theatlas',TEXTURENAME[TEXTURENAME.length-2]);
-			} else {
-				tBoard[i[0]][i[1]].loadTexture('theatlas',TEXTURENAME[TEXTURENAME.length-1]);
-			}
-		}
-		count += 1;
-	},this);
-	// when timer finishes, call refreshBoard
-	timer.onComplete.add(function(){
-		refreshBoard();
-	});
-	timer.start();
 }
 
 function updateLevel(){
@@ -753,7 +694,7 @@ function touchGuide(){
 	hud.downText2.angle -= 90;
 }
 
-function startGame(){
+function create() {
 	// destroy any unnecessary leftover HUD elements
 	if (hud.tutorial) hud.tutorial.destroy();
 	if (hud.tutText) hud.tutText.destroy();
@@ -819,73 +760,6 @@ function startGame(){
 	keyspace.onDown.add(processInput, this, 0, 'down');
 	var keyesc = game.input.keyboard.addKey(Phaser.Keyboard.ESC);
 	keyesc.onDown.add(processInput, this, 0, 'esc');
-}
-
-function create() {
-	// this function will show the menu
-
-	// dont' make tiles and don't accept input just yet
-	game.pause = true;
-	gvar.newTileReady = false;
-	gvar.acceptingInput = false;
-
-	// button for touch mode
-	hud.touchButtonReal = game.add.graphics(0,0);
-	hud.touchButtonReal.beginFill(0x000000);
-	hud.touchButtonReal.lineStyle(0,0,0);
-	hud.touchButtonReal.moveTo(gvar.hudPos.xTouchButton-400,gvar.hudPos.yTouchButton-50);
-	hud.touchButtonReal.lineTo(gvar.hudPos.xTouchButton-400,gvar.hudPos.yTouchButton+100);
-	hud.touchButtonReal.lineTo(gvar.hudPos.xTouchButton+800,gvar.hudPos.yTouchButton+100);
-	hud.touchButtonReal.lineTo(gvar.hudPos.xTouchButton+800,gvar.hudPos.yTouchButton-50);
-	hud.touchButtonReal.endFill();
-
-	// button to go to highscore
-	hud.HSButtonReal = game.add.graphics(0,0);
-	hud.HSButtonReal.beginFill(0x000000);
-	hud.HSButtonReal.lineStyle(0,0,0);
-	hud.HSButtonReal.moveTo(gvar.hudPos.xHSButton-400,gvar.hudPos.yHSButton-50);
-	hud.HSButtonReal.lineTo(gvar.hudPos.xHSButton-400,gvar.hudPos.yHSButton+100);
-	hud.HSButtonReal.lineTo(gvar.hudPos.xHSButton+800,gvar.hudPos.yHSButton+100);
-	hud.HSButtonReal.lineTo(gvar.hudPos.xHSButton+800,gvar.hudPos.yHSButton-50);
-	hud.HSButtonReal.endFill();
-
-	// the texts
-	hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','welcome to tetris!\n\nkeyboard controls:\n\nup - rotate\nleft - left\nright - right\ndown - lock in\nesc - pause\n\npress enter to start game',15);
-	hud.touchButton = game.add.bitmapText(gvar.hudPos.xTouchButton,gvar.hudPos.yTouchButton,'arcadefont','or tap\n-here-\nif you are on mobile',15);
-	hud.HSButton = game.add.bitmapText(gvar.hudPos.xHSButton,gvar.hudPos.yHSButton,'arcadefont','tap or click\n-here-\nto see highscores',15);
-	hud.tutText.align = 'center';
-	hud.touchButton.align = 'center';
-	hud.HSButton.align = 'center';
-
-	// add event listener to the buttons
-	hud.touchButtonReal.inputEnabled = true;
-	hud.touchButtonReal.events.onInputUp.add(function(){
-		// when go into touch mode, first show the touch tutorial, then tap to start the game
-		hud.tutText.destroy();
-		hud.tutorial = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'tutoverlay');
-		hud.tutText = game.add.bitmapText(gvar.hudPos.xTutText,gvar.hudPos.yTutText,'arcadefont','touch anywhere to start game',15);
-		hud.tutText.x -= 30;
-		game.input.onDown.add(processInput, this, 0, 'touch');
-		hud.touchButton.destroy();
-		hud.touchButtonReal.destroy();
-		hud.HSButton.destroy();
-		hud.HSButtonReal.destroy();
-	},this);
-
-	hud.HSButtonReal.inputEnabled = true;
-	hud.HSButtonReal.events.onInputUp.add(function(){
-		// go to highscore page
-		game.net.updateQueryString(undefined,undefined,true,'/highscore.html');
-		window.location = "/highscore.html";
-		window.open('/highscore.html','_self');
-		//game.net.updateQueryString(undefined,undefined,true,'http://tetris.anythingbut.me/highscore.html');
-		//window.location = "http://tetris.anythingbut.me/highscore.html";
-		//window.open('http://tetris.anythingbut.me/highscore.html','_self');
-	},this);
-
-	// listen to enter to start the game in keyboard mode
-	var keyenter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
-	keyenter.onDown.add(processInput, this, 0, 'enter');
 }
 
 function getRandomType(){
