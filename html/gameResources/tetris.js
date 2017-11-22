@@ -16,8 +16,9 @@ function shuffle(a) {
 
 // tile types
 const ITILE=0; const JTILE=1; const LTILE=2; const OTILE=3; const STILE=4; const TTILE=5; const ZTILE=6;
+const TEXTURENAME=['itile.png','jtile.png','ltile.png','otile.png','stile.png','ttile.png','ztile.png','whitetile.png','blacktile.png'];
 // tile colors according to the tile. The 2 last ones are for flashing when rows are cleared
-const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E,0xFFFFFF,0x000000];
+//const COLOR=[0x05B7B1,0x1755D7,0xFC8E1F,0xFEF63C,0x24E767,0x9D37FA,0xFF3A3E,0xFFFFFF,0x000000];
 
 // blueprints of all the states
 const STATE = [
@@ -243,6 +244,8 @@ window.onload = function(){
 function preload() {
 	// showing fps
 	game.time.advancedTiming = true;
+	// load the atlas
+	game.load.atlasJSONArray('theatlas','./gameResources/texture.png','./gameResources/texture.json');
 	// the font
 	game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
 	// touch guide image
@@ -274,7 +277,8 @@ function placeASquare(x, y, type){
 	var rx = gvar.xBoard+(x*gvar.wTile);
 	var ry = gvar.yBoard+(y*gvar.wTile);
 	// add the sprite in that place
-	var a = game.add.sprite(rx,ry, texture[type]);
+	//var a = game.add.sprite(rx,ry, texture[type]);
+	var a = game.add.sprite(rx,ry, 'theatlas',TEXTURENAME[type]);
 	return a;
 	//return agame.add.sprite(rx,ry, texture[type]);
 }
@@ -290,7 +294,7 @@ function updateNextTile(type){
 	}
 	for (var i=0; i<nTile.sq.length; i++){
 		// replace the texture with the correct one
-		nTile.sq[i].loadTexture(texture[type]);
+		nTile.sq[i].loadTexture('theatlas',TEXTURENAME[type]);
 		// also reposition it
 		nTile.sq[i].x = gvar.xNext + nTile.sc[i][0] * gvar.wTile;
 		nTile.sq[i].y = gvar.yNext + nTile.sc[i][1] * gvar.wTile;
@@ -518,9 +522,10 @@ function clearFull(){
 	timer.repeat(100,4,function(timer){
 		for (let i of toFlash){
 			if (count % 2 == 0){
-				tBoard[i[0]][i[1]].loadTexture(texture[texture.length-2]);
+				//tBoard[i[0]][i[1]].loadTexture(texture[texture.length-2]);
+				tBoard[i[0]][i[1]].loadTexture('theatlas',TEXTURENAME[TEXTURENAME.length-2]);
 			} else {
-				tBoard[i[0]][i[1]].loadTexture(texture[texture.length-1]);
+				tBoard[i[0]][i[1]].loadTexture('theatlas',TEXTURENAME[TEXTURENAME.length-1]);
 			}
 		}
 		count += 1;
@@ -818,13 +823,6 @@ function startGame(){
 
 function create() {
 	// this function will show the menu
-
-	// generate all the texture before hand
-	for (var i=0; i<COLOR.length; i++){
-		var tmp = drawASquare(0,0,COLOR[i]);
-		texture.push(tmp.generateTexture());
-		tmp.destroy();
-	}
 
 	// dont' make tiles and don't accept input just yet
 	game.pause = true;
