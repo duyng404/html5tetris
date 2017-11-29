@@ -70,20 +70,20 @@ var game;
 // global variables
 var gvar = {
     // game sizes
-    gameWidth: 360,
+    gameWidth: 400,
 	gameHeight: 600,
 	// spawn position
 	xSpawn: 4,
 	ySpawn: 1,
 	// next tile position, in real pixels
-	xNext: 60,
-	yNext: 17,
+	xNext: 6,
+	yNext: 525,
 	// board sizes
 	wBoard: 10,
 	hBoard: 17,
 	// top left corner of board (in pixels)
-	xBoard: 30,
-	yBoard: 60,
+	xBoard: 50,
+	yBoard: 52,
 	// position of HUD elements
 	hudPos: {
 		// Next text
@@ -102,7 +102,7 @@ var gvar = {
 		xPause: 62,
 		yPause: 250,
 		// the touch tutorial image
-		xTut: 25,
+		xTut: 0,
 		yTut: 0,
 		// welcome message text
 		xTutText: 60,
@@ -197,8 +197,8 @@ var tBoard = [[],[],[],[],[],[],[],[],[],[]];
 // rows that are full and marked for deletion
 var del = [];
 
-// array of prefabs texture
-var texture = [];
+// object pool
+var pool = [[],[],[],[],[],[],[],[],[],[]];
 
 // texts and information display in the game
 var hud = {};
@@ -245,8 +245,6 @@ function preload() {
 	game.load.atlasJSONArray('theatlas','./gameResources/texture.png','./gameResources/texture.json');
 	// the font
 	game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
-	// touch guide image
-	game.load.image('tutoverlay','./gameResources/tutorial.png');
 	// resize so it fits the screen
 	//game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 }
@@ -255,11 +253,18 @@ function placeASquare(x, y, type){
 	// calculate the "real" coordinate in pixels
 	var rx = gvar.xBoard+(x*gvar.wTile);
 	var ry = gvar.yBoard+(y*gvar.wTile);
-	// add the sprite in that place
-	//var a = game.add.sprite(rx,ry, texture[type]);
-	var a = game.add.sprite(rx,ry, 'theatlas',TEXTURENAME[type]);
-	return a;
-	//return agame.add.sprite(rx,ry, texture[type]);
+	// are there any sprite of same type in the pool?
+	if (pool[type].length > 0){
+		// if yes then pop it then reset it
+		var a = pool[type].pop();
+		a.reset(rx,ry);
+		return a;
+	}
+	else {
+		// if not then create new
+		var a = game.add.sprite(rx,ry, 'theatlas',TEXTURENAME[type]);
+		return a;
+	}
 }
 
 function updateNextTile(type){
@@ -301,6 +306,7 @@ function makeNewTile(){
 	aTile.timer.loop(gvar.diffTimer,lowerTile,this);
 	aTile.timer.start();
 	gvar.acceptingInput = true;
+	console.log(pool);
 }
 
 function transformTile(){
@@ -454,7 +460,8 @@ function clearFull(){
 		for (var i=0; i<gvar.wBoard; i++){
 			// remove the squares
 			board[i][therow] = 0;
-			tBoard[i][therow].destroy();
+			pool[tBoard[i][therow].ztype].push(tBoard[i][therow]);
+			tBoard[i][therow].kill();
 			delete tBoard[i][therow];
 		}
 		// move the whole board down one row
@@ -515,6 +522,7 @@ function commit(){
 		var newx = aTile.x + aTile.sc[i][0];
 		var newy = aTile.y + aTile.sc[i][1];
 		tBoard[newx][newy] = placeASquare(newx,newy,aTile.type);
+		tBoard[newx][newy].ztype = aTile.type;
 		// also update the board state
 		board[newx][newy] = 1;
 		// also check if the row is full
@@ -522,10 +530,15 @@ function commit(){
 	}
 	// delete all the squares in active tile
 	while (aTile.sq.length > 0){
-		aTile.sq.pop().destroy();
+		var tmp = aTile.sq.pop();
+		pool[aTile.type].push(tmp);
+		tmp.kill();
 		aTile.sc.pop();
 		// also the squares in ghost tile
-		gTile.sq.pop().destroy();
+		tmp = gTile.sq.pop();
+		tmp.alpha = 1;
+		pool[aTile.type].push(tmp);
+		tmp.kill();
 		gTile.sc.pop();
 	}
 	// remove any row if it is full
@@ -708,42 +721,44 @@ function create() {
 	gvar.newTileReady = true;
 	gvar.acceptingInput = true;
 
+	hud.gameField = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'theatlas','gamefield');
+
 	// the four lines showing the boundaries of the board
-	hud.gameField = game.add.graphics(0,0);
-	hud.gameField.beginFill(0x000000,0);
-	hud.gameField.lineStyle(2,0xffffff,1);
-	hud.gameField.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
-	hud.gameField.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
-	hud.gameField.endFill();
+	//hud.gameField = game.add.graphics(0,0);
+	//hud.gameField.beginFill(0x000000,0);
+	//hud.gameField.lineStyle(2,0xffffff,1);
+	//hud.gameField.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
+	//hud.gameField.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	//hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	//hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
+	//hud.gameField.endFill();
 
 	// the mask of the board for the active tile
-	hud.gameFieldMask = game.add.graphics(0,0);
-	hud.gameFieldMask.beginFill(0x000000,0);
-	hud.gameFieldMask.lineStyle(2,0xffffff,1);
-	hud.gameFieldMask.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
-	hud.gameFieldMask.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
-	hud.gameFieldMask.endFill();
+	//hud.gameFieldMask = game.add.graphics(0,0);
+	//hud.gameFieldMask.beginFill(0x000000,0);
+	//hud.gameFieldMask.lineStyle(2,0xffffff,1);
+	//hud.gameFieldMask.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
+	//hud.gameFieldMask.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	//hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	//hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
+	//hud.gameFieldMask.endFill();
 
 	// get the highscore from a GET query
-	$.get( "/z/getHighScore", function( data ) {
-		if (data.weekly){
-			var weekly = data.weekly;
-			weekly.sort(function(a,b){
-				return b.score - a.score;
-			});
-			gvar.highscore = weekly[0].score;
-		}
-	});
+	//$.get( "/z/getHighScore", function( data ) {
+	//	if (data.weekly){
+	//		var weekly = data.weekly;
+	//		weekly.sort(function(a,b){
+	//			return b.score - a.score;
+	//		});
+	//		gvar.highscore = weekly[0].score;
+	//	}
+	//});
 
 	// the texts up top
-	hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
-	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
-	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'arcadefont','score:   ',15);
-	hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: '+gvar.highscore,15);
+	//hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
+	//hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
+	//hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'arcadefont','score:   ',15);
+	//hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: '+gvar.highscore,15);
 	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'arcadefont','-- paused --',30);
 	hud.pauseText.visible = false;
 
@@ -798,9 +813,9 @@ function update() {
 	}
 
 	if (!gvar.firstTile){
-		hud.scoreText.text = 'score:   ' + gvar.score;
-		hud.levelText.text = 'level:   ' + gvar.level;
-		hud.highText.text = 'hiscore: '+ gvar.highscore;
+		//hud.scoreText.text = 'score:   ' + gvar.score;
+		//hud.levelText.text = 'level:   ' + gvar.level;
+		//hud.highText.text = 'hiscore: '+ gvar.highscore;
 	}
 }
 
