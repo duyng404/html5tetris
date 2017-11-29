@@ -70,42 +70,39 @@ var game;
 // global variables
 var gvar = {
     // game sizes
-    gameWidth: 400,
+    gameWidth: 360,
 	gameHeight: 600,
 	// spawn position
 	xSpawn: 4,
 	ySpawn: 1,
 	// next tile position, in real pixels
-	xNext: 8,
-	yNext: 526,
-	// hold tile position, in real pixels
-	xHold: 357,
-	yHold: 440,
+	xNext: 60,
+	yNext: 17,
 	// board sizes
 	wBoard: 10,
-	hBoard: 16,
+	hBoard: 17,
 	// top left corner of board (in pixels)
-	xBoard: 50,
-	yBoard: 82,
+	xBoard: 30,
+	yBoard: 60,
 	// position of HUD elements
 	hudPos: {
 		// Next text
 		xNext: 35,
 		yNext: 3,
 		// Score text
-		xScore: 200,
-		yScore: 50,
+		xScore: 140,
+		yScore: 12,
 		// Level text
-		xLevel: 372,
-		yLevel: 557,
+		xLevel: 140,
+		yLevel: 30,
 		// Highscore text
-		xHigh: 200,
-		yHigh: 10,
+		xHigh: 140,
+		yHigh: 47,
 		// Pause text
 		xPause: 62,
 		yPause: 250,
 		// the touch tutorial image
-		xTut: 0,
+		xTut: 25,
 		yTut: 0,
 		// welcome message text
 		xTutText: 60,
@@ -126,8 +123,6 @@ var gvar = {
 	},
 	// tile size
 	wTile: 30,
-	// recently swap the tile with hold or not
-	justSwapped: false,
 	// ready to make a new tile or not
 	newTileReady: false,
 	// accepting input or not
@@ -174,13 +169,6 @@ var nTile = {
 	type: 0
 }
 
-// the next tile: current tile, object pool, and the type
-var hTile = {
-	current: undefined,
-	pool: [],
-	type: undefined
-}
-
 // information of the ghost tile
 var gTile = {
 	sq: [],
@@ -191,16 +179,16 @@ var gTile = {
 
 // current game board
 var board = [ // 10x18
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 ]
 
 // current game board, but stores sprite
@@ -230,7 +218,6 @@ window.onload = function(){
 		// also move other elements in place
 		gvar.xBoard += difference / 2;
 		gvar.xNext += difference / 2;
-		gvar.xHold += difference / 2;
 		for (var i in gvar.hudPos){
 			if (i.startsWith('x'))
 				gvar.hudPos[i] += difference / 2;
@@ -257,9 +244,7 @@ function preload() {
 	// load the atlas
 	game.load.atlasJSONArray('theatlas','./gameResources/texture.png','./gameResources/texture.json');
 	// the font
-	//game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
-	game.load.bitmapFont('exofont','./gameResources/exofont.png','./gameResources/exofont.fnt');
-	game.load.bitmapFont('exofontsmall','./gameResources/exofontsmall.png','./gameResources/exofontsmall.fnt');
+	game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
 	// resize so it fits the screen
 	//game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 }
@@ -268,18 +253,11 @@ function placeASquare(x, y, type){
 	// calculate the "real" coordinate in pixels
 	var rx = gvar.xBoard+(x*gvar.wTile);
 	var ry = gvar.yBoard+(y*gvar.wTile);
-	// are there any sprite of same type in the pool?
-	if (pool[type].length > 0){
-		// if yes then pop it then reset it
-		var a = pool[type].pop();
-		a.reset(rx,ry);
-		return a;
-	}
-	else {
-		// if not then create new
-		var a = game.add.sprite(rx,ry, 'theatlas',TEXTURENAME[type]);
-		return a;
-	}
+	// add the sprite in that place
+	//var a = game.add.sprite(rx,ry, texture[type]);
+	var a = game.add.sprite(rx,ry, 'theatlas',TEXTURENAME[type]);
+	return a;
+	//return agame.add.sprite(rx,ry, texture[type]);
 }
 
 function updateNextTile(type){
@@ -296,9 +274,9 @@ function updateNextTile(type){
 	nTile.type = type;
 }
 
-function makeNewTile(type){
+function makeNewTile(){
 	// get the type from next tile
-	aTile.type = type;
+	aTile.type = nTile.type;
 	// get the first state of that type
 	aTile.sc = STATE[aTile.type][0].slice();
 	// put squares on screen according to the blueprint
@@ -363,70 +341,6 @@ function updateGhost(){
 	// move the squares down to the bottom
 	for (let tile of gTile.sq){
 		tile.y += count * gvar.wTile;
-	}
-}
-
-function holdTile(){
-	if (!gvar.justSwapped){
-		gvar.justSwapped = true;
-
-		// if there isn't any hold Tile yet
-		if (!hTile.current){
-			// get Type from aTile
-			hTile.type = aTile.type;
-			// delete current aTile
-			while (aTile.sq.length > 0){
-				aTile.timer.destroy();
-				var tmp = aTile.sq.pop();
-				pool[aTile.type].push(tmp);
-				tmp.kill();
-				aTile.sc.pop();
-				// also the ghost tile
-				tmp = gTile.sq.pop();
-				tmp.alpha = 1;
-				pool[aTile.type].push(tmp);
-				tmp.kill();
-				gTile.sc.pop();
-			}
-			gvar.newTileReady = true;
-		}
-		// else, there is a currently held tile
-		else {
-			// delete current aTile
-			while (aTile.sq.length > 0){
-				aTile.timer.destroy();
-				var tmp = aTile.sq.pop();
-				pool[aTile.type].push(tmp);
-				tmp.kill();
-				aTile.sc.pop();
-				// also the ghost tile
-				tmp = gTile.sq.pop();
-				tmp.alpha = 1;
-				pool[aTile.type].push(tmp);
-				tmp.kill();
-				gTile.sc.pop();
-			}
-			// swap tile types
-			var tmp = hTile.type;
-			hTile.type = aTile.type;
-			aTile.type = tmp;
-			// make new tile
-			makeNewTile(aTile.type);
-			// update necessary stuff
-			tmp = getRandomType();
-			updateNextTile(tmp);
-			updateGhost();
-		}
-
-		// kill the current one, if there is any
-		if (hTile.current) hTile.current.kill();
-		// if there is no same tile in the pool
-		if (!hTile.pool[hTile.type])
-			// then create it
-			hTile.pool[hTile.type] = game.add.sprite(0,0,'theatlas','next'+TEXTURENAME[hTile.type]);
-		// get from the pool and reset it
-		hTile.current = hTile.pool[hTile.type];
-		hTile.current.reset(gvar.xHold,gvar.yHold);
 	}
 }
 
@@ -538,8 +452,7 @@ function clearFull(){
 		for (var i=0; i<gvar.wBoard; i++){
 			// remove the squares
 			board[i][therow] = 0;
-			pool[tBoard[i][therow].ztype].push(tBoard[i][therow]);
-			tBoard[i][therow].kill();
+			tBoard[i][therow].destroy();
 			delete tBoard[i][therow];
 		}
 		// move the whole board down one row
@@ -600,7 +513,6 @@ function commit(){
 		var newx = aTile.x + aTile.sc[i][0];
 		var newy = aTile.y + aTile.sc[i][1];
 		tBoard[newx][newy] = placeASquare(newx,newy,aTile.type);
-		tBoard[newx][newy].ztype = aTile.type;
 		// also update the board state
 		board[newx][newy] = 1;
 		// also check if the row is full
@@ -608,15 +520,10 @@ function commit(){
 	}
 	// delete all the squares in active tile
 	while (aTile.sq.length > 0){
-		var tmp = aTile.sq.pop();
-		pool[aTile.type].push(tmp);
-		tmp.kill();
+		aTile.sq.pop().destroy();
 		aTile.sc.pop();
 		// also the squares in ghost tile
-		tmp = gTile.sq.pop();
-		tmp.alpha = 1;
-		pool[aTile.type].push(tmp);
-		tmp.kill();
+		gTile.sq.pop().destroy();
 		gTile.sc.pop();
 	}
 	// remove any row if it is full
@@ -680,10 +587,6 @@ function processInput(context,s){
 			startGame();
 			return;
 		}
-	} else if (arguments[1] == 'shift'){
-		if (gvar.acceptingInput)
-			holdTile();
-		return;
 	} else if (arguments[2] == 'touch'){
 		// if game havent' started
 		if (gvar.firstTile){
@@ -722,6 +625,73 @@ function processInput(context,s){
 	}
 }
 
+function touchGuide(){
+	// the various lines and texts on the sides to show which touch region is which
+	// i'm too lazy to comment everything in here
+	hud.line1 = game.add.graphics(0,0);
+	hud.line1.beginFill(0x000000,0);
+	hud.line1.lineStyle(2,0xffffff,1);
+	hud.line1.moveTo(gvar.xBoard-50,gvar.hudPos.yControlPause);
+	hud.line1.lineTo(gvar.xBoard,gvar.hudPos.yControlPause);
+	hud.line1.endFill();
+
+	hud.line2 = game.add.graphics(0,0);
+	hud.line2.beginFill(0x000000,0);
+	hud.line2.lineStyle(2,0xffffff,1);
+	hud.line2.moveTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.hudPos.yControlPause);
+	hud.line2.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile+50,gvar.hudPos.yControlPause);
+	hud.line2.endFill();
+
+	hud.line3 = game.add.graphics(0,0);
+	hud.line3.beginFill(0x000000,0);
+	hud.line3.lineStyle(2,0xffffff,1);
+	hud.line3.moveTo(gvar.xBoard-50,gvar.hudPos.yControlLR);
+	hud.line3.lineTo(gvar.xBoard,gvar.hudPos.yControlLR);
+	hud.line3.endFill();
+
+	hud.line4 = game.add.graphics(0,0);
+	hud.line4.beginFill(0x000000,0);
+	hud.line4.lineStyle(2,0xffffff,1);
+	hud.line4.moveTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.hudPos.yControlLR);
+	hud.line4.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile+50,gvar.hudPos.yControlLR);
+	hud.line4.endFill();
+
+	hud.line5 = game.add.graphics(0,0);
+	hud.line5.beginFill(0x000000,0);
+	hud.line5.lineStyle(2,0xffffff,1);
+	hud.line5.moveTo(gvar.xBoard-50,gvar.hudPos.yControlRotate);
+	hud.line5.lineTo(gvar.xBoard,gvar.hudPos.yControlRotate);
+	hud.line5.endFill();
+
+	hud.line6 = game.add.graphics(0,0);
+	hud.line6.beginFill(0x000000,0);
+	hud.line6.lineStyle(2,0xffffff,1);
+	hud.line6.moveTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.hudPos.yControlRotate);
+	hud.line6.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile+50,gvar.hudPos.yControlRotate);
+	hud.line6.endFill();
+
+	hud.rotateText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlPause+100,'arcadefont','rotate',7);
+	hud.rotateText1.anchor.setTo(0,0);
+	hud.rotateText1.angle += 90;
+	hud.rotateText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlPause+100,'arcadefont','rotate',7);
+	hud.rotateText2.anchor.setTo(1,1);
+	hud.rotateText2.angle -= 90;
+
+	hud.leftText = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlRotate+100,'arcadefont','left',7);
+	hud.leftText.anchor.setTo(0,0);
+	hud.leftText.angle += 90;
+	hud.rightText = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlRotate+100,'arcadefont','right',7);
+	hud.rightText.anchor.setTo(1,1);
+	hud.rightText.angle -= 90;
+
+	hud.downText1 = game.add.bitmapText(gvar.xBoard-20,gvar.hudPos.yControlLR+25,'arcadefont','down',7);
+	hud.downText1.anchor.setTo(0,0);
+	hud.downText1.angle += 90;
+	hud.downText2 = game.add.bitmapText(gvar.xBoard+gvar.wBoard*gvar.wTile+30,gvar.hudPos.yControlLR+25,'arcadefont','down',7);
+	hud.downText2.anchor.setTo(1,1);
+	hud.downText2.angle -= 90;
+}
+
 function create() {
 	// destroy any unnecessary leftover HUD elements
 	if (hud.tutorial) hud.tutorial.destroy();
@@ -736,27 +706,25 @@ function create() {
 	gvar.newTileReady = true;
 	gvar.acceptingInput = true;
 
-	hud.gameField = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'theatlas','gamefield');
-
 	// the four lines showing the boundaries of the board
-	//hud.gameField = game.add.graphics(0,0);
-	//hud.gameField.beginFill(0x000000,0);
-	//hud.gameField.lineStyle(2,0xffffff,1);
-	//hud.gameField.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
-	//hud.gameField.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	//hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	//hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
-	//hud.gameField.endFill();
+	hud.gameField = game.add.graphics(0,0);
+	hud.gameField.beginFill(0x000000,0);
+	hud.gameField.lineStyle(2,0xffffff,1);
+	hud.gameField.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
+	hud.gameField.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
+	hud.gameField.endFill();
 
 	// the mask of the board for the active tile
-	//hud.gameFieldMask = game.add.graphics(0,0);
-	//hud.gameFieldMask.beginFill(0x000000,0);
-	//hud.gameFieldMask.lineStyle(2,0xffffff,1);
-	//hud.gameFieldMask.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
-	//hud.gameFieldMask.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	//hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-	//hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
-	//hud.gameFieldMask.endFill();
+	hud.gameFieldMask = game.add.graphics(0,0);
+	hud.gameFieldMask.beginFill(0x000000,0);
+	hud.gameFieldMask.lineStyle(2,0xffffff,1);
+	hud.gameFieldMask.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
+	hud.gameFieldMask.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
+	hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
+	hud.gameFieldMask.endFill();
 
 	// get the highscore from a GET query
 	$.get( "/z/getHighScore", function( data ) {
@@ -770,14 +738,11 @@ function create() {
 	});
 
 	// the texts up top
-	//hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
-	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'exofontsmall','1',30);
-	hud.levelText.anchor.x = 0.5;
-	hud.levelText.anchor.y = 0.5;
-	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'exofont','0',50);
-	hud.scoreText.anchor.x = 0.5;
-	hud.scoreText.anchor.y = 0.5;
-	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'exofont','-- paused --',30);
+	hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
+	hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'arcadefont','level:   ',15);
+	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'arcadefont','score:   ',15);
+	hud.highText = game.add.bitmapText(gvar.hudPos.xHigh,gvar.hudPos.yHigh,'arcadefont','hiscore: '+gvar.highscore,15);
+	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'arcadefont','-- paused --',30);
 	hud.pauseText.visible = false;
 
 	// keyboard events
@@ -793,8 +758,6 @@ function create() {
 	keyspace.onDown.add(processInput, this, 0, 'down');
 	var keyesc = game.input.keyboard.addKey(Phaser.Keyboard.ESC);
 	keyesc.onDown.add(processInput, this, 0, 'esc');
-	var keyshift = game.input.keyboard.addKey(Phaser.Keyboard.SHIFT);
-	keyshift.onDown.add(processInput, this, 0, 'shift');
 }
 
 function getRandomType(){
@@ -826,18 +789,16 @@ function update() {
 			gvar.firstTile = false;
 		}
 		gvar.newTileReady = false;
-		gvar.justSwapped = false;
-		makeNewTile(nTile.type);
+		makeNewTile();
 		var type = getRandomType();
 		updateNextTile(type);
 		updateGhost();
 	}
 
 	if (!gvar.firstTile){
-		if (hud.scoreText.text != gvar.score)
-			hud.scoreText.text = gvar.score;
-		if (hud.levelText.text != gvar.level)
-			hud.levelText.text = gvar.level;
+		hud.scoreText.text = 'score:   ' + gvar.score;
+		hud.levelText.text = 'level:   ' + gvar.level;
+		hud.highText.text = 'hiscore: '+ gvar.highscore;
 	}
 }
 
