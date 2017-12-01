@@ -102,8 +102,8 @@ var gvar = {
 		xHigh: 200,
 		yHigh: 10,
 		// Pause text
-		xPause: 62,
-		yPause: 250,
+		xPause: 190,
+		yPause: 300,
 		// the touch tutorial image
 		xTut: 0,
 		yTut: 0,
@@ -260,6 +260,7 @@ function preload() {
 	//game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
 	game.load.bitmapFont('exofont','./gameResources/exofont.png','./gameResources/exofont.fnt');
 	game.load.bitmapFont('exofontsmall','./gameResources/exofontsmall.png','./gameResources/exofontsmall.fnt');
+	game.load.bitmapFont('streamster','./gameResources/streamster.png','./gameResources/streamster.fnt');
 	// resize so it fits the screen
 	//game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 }
@@ -777,7 +778,9 @@ function create() {
 	hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'exofont','0',50);
 	hud.scoreText.anchor.x = 0.5;
 	hud.scoreText.anchor.y = 0.5;
-	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'exofont','-- paused --',30);
+	hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'streamster','Pau}sed',100);
+	hud.pauseText.anchor.x = 0.5;
+	hud.pauseText.anchor.y = 0.5;
 	hud.pauseText.visible = false;
 
 	// keyboard events
