@@ -4,6 +4,7 @@ var
 	gameSettings = {
 		gameWidth: 400,
 		gameHeight: 600,
+		scaleRatio: 1,
 		xOffset: 0,
 		yOffset: 0
 	};
@@ -14,7 +15,6 @@ window.onload = function(){
 	var windowHeight = window.innerHeight;
 	var ratio = windowWidth / windowHeight;
 	// resize accordingly
-	var newWidth = gameSettings.gameWidth;
 	if (ratio > gameSettings.gameWidth / gameSettings.gameHeight){
 		newWidth = gameSettings.gameHeight * ratio;
 		gameSettings.xOffset = newWidth - gameSettings.gameWidth;
@@ -25,6 +25,9 @@ window.onload = function(){
 		gameSettings.yOffset = newHeight - gameSettings.gameHeight;
 		gameSettings.gameHeight = newHeight;
 	}
+	var scaleRatio = windowWidth / gameSettings.gameWidth;
+	scaleRatio = (Math.floor(scaleRatio*10))/10;
+	gameSettings.scaleRatio = scaleRatio;
 	game = new Phaser.Game(gameSettings.gameWidth, gameSettings.gameHeight, Phaser.AUTO, '');
 	game.state.add('Main', Main);
 	game.state.start('Main');
@@ -45,4 +48,3 @@ Main.prototype = {
 	}
 
 };
-

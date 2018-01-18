@@ -25,6 +25,12 @@ Menu.prototype = {
 	},
 
 	create: function() {
+		game.scale.pageAlignHorizontally = true;
+		game.scale.pageAlignVertically = true
+		game.scale.refresh();
+
+		console.log(game.device.desktop);
+
 		game.add.sprite(this.gvar.xBG,this.gvar.yBG,'theatlas','menubg');
 
 		var txt = game.add.bitmapText(this.gvar.xStart, this.gvar.yStart,'streamster','Start',60);

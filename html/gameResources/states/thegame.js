@@ -241,6 +241,9 @@ var TheGame = function() {
 		//game.load.bitmapFont('streamster','./gameResources/streamster.png','./gameResources/streamster.fnt');
 		// resize so it fits the screen
 		//game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
+		game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
+		game.scale.setUserScale(gameSettings.scaleRatio,gameSettings.scaleRatio);
+		console.log(gameSettings.scaleRatio);
 	}
 
 	function placeASquare(x, y, type){
