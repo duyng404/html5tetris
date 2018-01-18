@@ -4,7 +4,7 @@ Splash.prototype = {
 
 	loadScripts: function () {
 		game.load.script('menu','./gameResources/states/menu.js');
-		game.load.script('thegame','./gameResources/states/tetris.js');
+		game.load.script('thegame','./gameResources/states/thegame.js');
 		game.load.script('gameover','./gameResources/states/gameover.js');
 		game.load.script('settings','./gameResources/states/settings.js');
 	},
@@ -41,7 +41,7 @@ Splash.prototype = {
 
 	addGameStates: function () {
 		game.state.add("Menu",Menu);
-		//game.state.add("Game",Game);
+		game.state.add("TheGame",TheGame);
 		game.state.add("GameOver",GameOver);
 		game.state.add("Settings",Settings);
 	},
