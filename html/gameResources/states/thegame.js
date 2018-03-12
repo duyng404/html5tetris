@@ -69,22 +69,22 @@ var TheGame = function() {
 	// global variables
 	var gvar = {
 		// game sizes
-		gameWidth: 400,
-		gameHeight: 600,
+		gameWidth: 700,
+		gameHeight: 1000,
 		// spawn position
 		xSpawn: 4,
 		ySpawn: 1,
 		// next tile position, in real pixels
-		xNext: 8,
-		yNext: 526,
+		xNext: 20,
+		yNext: 857,
 		// hold tile position, in real pixels
-		xHold: 357,
-		yHold: 440,
+		xHold: 625,
+		yHold: 705,
 		// board sizes
 		wBoard: 10,
-		hBoard: 16,
+		hBoard: 17,
 		// top left corner of board (in pixels)
-		xBoard: 50,
+		xBoard: 100,
 		yBoard: 82,
 		// position of HUD elements
 		hudPos: {
@@ -92,11 +92,11 @@ var TheGame = function() {
 			xNext: 35,
 			yNext: 3,
 			// Score text
-			xScore: 200,
-			yScore: 50,
+			xScore: 350,
+			yScore: 70,
 			// Level text
-			xLevel: 372,
-			yLevel: 557,
+			xLevel: 650,
+			yLevel: 885,
 			// Highscore text
 			xHigh: 200,
 			yHigh: 10,
@@ -124,7 +124,7 @@ var TheGame = function() {
 			yControlLR: 450,
 		},
 		// tile size
-		wTile: 30,
+		wTile: 50,
 		// recently swap the tile with hold or not
 		justSwapped: false,
 		// ready to make a new tile or not
@@ -146,7 +146,13 @@ var TheGame = function() {
 		// game ended?
 		gameEnded: false,
 		// high score
-		highscore: '---'
+		highscore: '---',
+		// group to store all the tile
+		tiles: undefined,
+		// group to store animations below the tile
+		belowTiles: undefined,
+		// list containing the commit animations
+		commitAnims: []
 	};
 
 	// information of the active tile
@@ -190,16 +196,16 @@ var TheGame = function() {
 
 	// current game board
 	var board = [ // 10x18
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 	]
 
 	// current game board, but stores sprite
@@ -216,34 +222,10 @@ var TheGame = function() {
 
 	this.preload = function(){
 		// fix all the positions
-		gvar.xBoard += gameSettings.xOffset / 2;
-		gvar.xNext += gameSettings.xOffset / 2;
-		gvar.xHold += gameSettings.xOffset / 2;
-		gvar.yBoard += gameSettings.yOffset / 2;
-		gvar.yNext += gameSettings.yOffset / 2;
-		gvar.yHold += gameSettings.yOffset / 2;
 		gvar.gameWidth = gameSettings.gameWidth;
 		gvar.gameHeight = gameSettings.gameHeight;
-		for (var i in gvar.hudPos){
-			if (i.startsWith('x'))
-				gvar.hudPos[i] += gameSettings.xOffset / 2;
-			if (i.startsWith('y'))
-				gvar.hudPos[i] += gameSettings.yOffset / 2;
-		}
 		// showing fps
 		game.time.advancedTiming = true;
-		// load the atlas
-		//game.load.atlasJSONArray('theatlas','./gameResources/texture.png','./gameResources/texture.json');
-		// the font
-		//game.load.bitmapFont('arcadefont','./gameResources/arcadefont.png','./gameResources/arcadefont.fnt');
-		//game.load.bitmapFont('exofont','./gameResources/exofont.png','./gameResources/exofont.fnt');
-		//game.load.bitmapFont('exofontsmall','./gameResources/exofontsmall.png','./gameResources/exofontsmall.fnt');
-		//game.load.bitmapFont('streamster','./gameResources/streamster.png','./gameResources/streamster.fnt');
-		// resize so it fits the screen
-		//game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
-		game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-		game.scale.setUserScale(gameSettings.scaleRatio,gameSettings.scaleRatio);
-		console.log(gameSettings.scaleRatio);
 	}
 
 	function placeASquare(x, y, type){
@@ -259,7 +241,8 @@ var TheGame = function() {
 		}
 		else {
 			// if not then create new
-			var a = game.add.sprite(rx,ry, 'theatlas',TEXTURENAME[type]);
+			var a = game.add.sprite(rx,ry, 'textureAtlas',TEXTURENAME[type]);
+			gvar.tiles.add(a);
 			return a;
 		}
 	}
@@ -270,7 +253,7 @@ var TheGame = function() {
 		// if there is no same tile in the pool
 		if (!nTile.pool[type])
 			// then create it
-			nTile.pool[type] = game.add.sprite(0,0,'theatlas','next'+TEXTURENAME[type]);
+			nTile.pool[type] = game.add.sprite(0,0,'textureAtlas','next'+TEXTURENAME[type]);
 		// get from the pool and reset it
 		nTile.current = nTile.pool[type];
 		nTile.current.reset(gvar.xNext,gvar.yNext);
@@ -405,7 +388,7 @@ var TheGame = function() {
 			// if there is no same tile in the pool
 			if (!hTile.pool[hTile.type])
 				// then create it
-				hTile.pool[hTile.type] = game.add.sprite(0,0,'theatlas','next'+TEXTURENAME[hTile.type]);
+				hTile.pool[hTile.type] = game.add.sprite(0,0,'textureAtlas','next'+TEXTURENAME[hTile.type]);
 			// get from the pool and reset it
 			hTile.current = hTile.pool[hTile.type];
 			hTile.current.reset(gvar.xHold,gvar.yHold);
@@ -524,6 +507,17 @@ var TheGame = function() {
 				tBoard[i][therow].kill();
 				delete tBoard[i][therow];
 			}
+
+			// add animations for all rows
+			var rx = gvar.yBoard+(therow*gvar.wTile);
+			console.log(therow,rx);
+			var anim = game.add.sprite(0,rx,'rowclear_anim');
+			anim.anchor.x = 0;
+			anim.anchor.y = 0.33;
+			//gvar.belowTiles.add(anim);
+			var fade = anim.animations.add('fade');
+			anim.animations.play('fade',60,false,true);
+
 			// move the whole board down one row
 			for (var i=therow; i>0; i--){
 				for (var j=0; j<gvar.wBoard; j++){
@@ -545,9 +539,41 @@ var TheGame = function() {
 		gvar.newTileReady = true;
 	}
 
+	function addCommitAnim(x,y){
+		var tmp = 0;
+		for (let i of gvar.commitAnims){
+			if (y > i[1])
+				i[1] = y;
+			if (x > i[0])
+				tmp = 0;
+			if (x < i[0])
+				tmp = 1;
+			if (x == i[0])
+				return;
+		}
+		if (tmp == 0){
+			gvar.commitAnims.push([x,y]);
+		} else {
+			gvar.commitAnims.unshift([x,y]);
+		}
+	}
+
+	function startAllAnims(){
+		var rx = gvar.xBoard+(gvar.commitAnims[0][0]*gvar.wTile);
+		var ry = gvar.yBoard+(gvar.commitAnims[0][1]*gvar.wTile);
+		var anim = game.add.sprite(rx,ry,'commit_anim');
+		anim.anchor.x = 0;
+		anim.anchor.y = 1;
+		anim.scale.x = anim.scale.x * gvar.commitAnims.length;
+		gvar.belowTiles.add(anim);
+		var fade = anim.animations.add('fade');
+		anim.animations.play('fade',60,false,true);
+		gvar.commitAnims = [];
+	}
+
 	function updateLevel(){
 		// this is the whole gist of the difficulty settings
-		if (gvar.score < 3000){ gvar.level=1; gvar.scoreMulti=1; gvar.diffTimer=1500; }
+		if (gvar.score < 3000){ gvar.level=69; gvar.scoreMulti=1; gvar.diffTimer=1500; }
 		else if (gvar.score < 6000){ gvar.level=2; gvar.scoreMulti=1; gvar.diffTimer=1000; }
 		else if (gvar.score < 11000){ gvar.level=3; gvar.scoreMulti=2; gvar.diffTimer=750; }
 		else if (gvar.score < 16000){ gvar.level=4; gvar.scoreMulti=2; gvar.diffTimer=650; }
@@ -585,9 +611,13 @@ var TheGame = function() {
 			tBoard[newx][newy].ztype = aTile.type;
 			// also update the board state
 			board[newx][newy] = 1;
+			// add a commit animation
+			addCommitAnim(newx,newy);
 			// also check if the row is full
 			checkRowFull(newy);
 		}
+		// start all the animations
+		startAllAnims();
 		// delete all the squares in active tile
 		while (aTile.sq.length > 0){
 			var tmp = aTile.sq.pop();
@@ -633,14 +663,16 @@ var TheGame = function() {
 		} else {
 			game.paused = true;
 			hud.pauseText.visible = true;
+			game.world.bringToTop(hud.pauseText);
 			gvar.acceptingInput = false;
 		}
 	}
 
 	function processInput(context,s){
 		if (arguments[1] == 'right'){
-			if (gvar.acceptingInput)
+			if (gvar.acceptingInput){
 				moveRight();
+			}
 			return;
 		} else if (arguments[1] == 'left'){
 			if (gvar.acceptingInput)
@@ -717,8 +749,10 @@ var TheGame = function() {
 		game.pause = false;
 		gvar.newTileReady = true;
 		gvar.acceptingInput = true;
+		gvar.tiles = game.add.group();
+		gvar.belowTiles = game.add.group();
 
-		hud.gameField = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'theatlas','gamefield');
+		hud.gameField = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'gamebg');
 
 		// the four lines showing the boundaries of the board
 		//hud.gameField = game.add.graphics(0,0);
@@ -741,28 +775,31 @@ var TheGame = function() {
 		//hud.gameFieldMask.endFill();
 
 		// get the highscore from a GET query
-		$.get( "/z/getHighScore", function( data ) {
-			if (data.weekly){
-				var weekly = data.weekly;
-				weekly.sort(function(a,b){
-					return b.score - a.score;
-				});
-				gvar.highscore = weekly[0].score;
-			}
-		});
+		//$.get( "/z/getHighScore", function( data ) {
+		//	if (data.weekly){
+		//		var weekly = data.weekly;
+		//		weekly.sort(function(a,b){
+		//			return b.score - a.score;
+		//		});
+		//		gvar.highscore = weekly[0].score;
+		//	}
+		//});
 
 		// the texts up top
 		//hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
-		hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'exofontsmall','1',30);
+		hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'highscorefont','1',50);
 		hud.levelText.anchor.x = 0.5;
 		hud.levelText.anchor.y = 0.5;
-		hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'exofont','0',50);
+		hud.scoreText = game.add.bitmapText(gvar.hudPos.xScore,gvar.hudPos.yScore,'highscorefont','0',100);
 		hud.scoreText.anchor.x = 0.5;
 		hud.scoreText.anchor.y = 0.5;
-		hud.pauseText = game.add.bitmapText(gvar.hudPos.xPause,gvar.hudPos.yPause,'streamster','Pau}sed',100);
+		hud.pauseText = game.add.sprite(gvar.hudPos.xPause,gvar.hudPos.yPause,'textureAtlas','paused');
 		hud.pauseText.anchor.x = 0.5;
 		hud.pauseText.anchor.y = 0.5;
 		hud.pauseText.visible = false;
+		game.world.bringToTop(gvar.belowTiles);
+		game.world.bringToTop(gvar.tiles);
+		game.world.bringToTop(hud.scoreText);
 
 		// keyboard events
 		var keyup = game.input.keyboard.addKey(Phaser.Keyboard.UP);

@@ -1,0 +1,23 @@
+<font>
+  <info face="highscorefont" size="120" bold="0" italic="0" charset="" unicode="" stretchH="100" smooth="1" aa="1" padding="2,2,2,2" spacing="0,0" outline="0"/>
+  <common lineHeight="120" base="86" scaleW="281" scaleH="481" pages="1" packed="0"/>
+  <pages>
+    <page id="0" file="highscorefont.png"/>
+  </pages>
+  <chars count="10">
+    <char id="48" x="2" y="2" width="93" height="119" xoffset="-10" yoffset="0" xadvance="77" page="0" chnl="15"/>
+    <char id="49" x="2" y="123" width="62" height="116" xoffset="-7" yoffset="2" xadvance="48" page="0" chnl="15"/>
+    <char id="50" x="2" y="241" width="92" height="117" xoffset="-13" yoffset="1" xadvance="72" page="0" chnl="15"/>
+    <char id="51" x="2" y="360" width="88" height="118" xoffset="-12" yoffset="1" xadvance="73" page="0" chnl="15"/>
+    <char id="52" x="66" y="123" width="87" height="116" xoffset="-11" yoffset="2" xadvance="73" page="0" chnl="15"/>
+    <char id="53" x="97" y="2" width="87" height="118" xoffset="-9" yoffset="1" xadvance="73" page="0" chnl="15"/>
+    <char id="54" x="92" y="360" width="91" height="119" xoffset="-10" yoffset="0" xadvance="77" page="0" chnl="15"/>
+    <char id="55" x="96" y="241" width="92" height="117" xoffset="-11" yoffset="1" xadvance="69" page="0" chnl="15"/>
+    <char id="56" x="185" y="360" width="94" height="119" xoffset="-11" yoffset="0" xadvance="79" page="0" chnl="15"/>
+    <char id="57" x="186" y="2" width="91" height="119" xoffset="-8" yoffset="0" xadvance="77" page="0" chnl="15"/>
+    <char id="32" x="0" y="0" width="0" height="0" xoffset="-8" yoffset="0" xadvance="29" page="0" chnl="15"/>
+  </chars>
+  <kernings count="1">
+    <kerning first="55" second="52" amount="-1"/>
+  </kernings>
+</font>

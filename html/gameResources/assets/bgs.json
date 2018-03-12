@@ -1,0 +1,39 @@
+{"frames": [
+
+{
+	"filename": "gamefield.png",
+	"frame": {"x":0,"y":0,"w":700,"h":1000},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":700,"h":1000},
+	"sourceSize": {"w":700,"h":1000},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "menubg.png",
+	"frame": {"x":700,"y":0,"w":700,"h":1000},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":700,"h":1000},
+	"sourceSize": {"w":700,"h":1000},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "settingsbg.png",
+	"frame": {"x":0,"y":1000,"w":700,"h":1000},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":700,"h":1000},
+	"sourceSize": {"w":700,"h":1000},
+	"pivot": {"x":0.5,"y":0.5}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "bgs.png",
+	"format": "RGBA8888",
+	"size": {"w":1400,"h":2000},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:824eccec7063f9f93985de2346facd9e:26bf35478dd8952816f8179875749890:8d66618cd132f1e192b33c10ea222e7a$"
+}
+}
