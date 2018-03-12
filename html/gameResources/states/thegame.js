@@ -1,4 +1,4 @@
-var TheGame = function() {
+	var TheGame = function() {
 
 	// javascript doesn't have a sort number functions so here it is
 	function sortNumber(a,b) {
@@ -101,8 +101,8 @@ var TheGame = function() {
 			xHigh: 200,
 			yHigh: 10,
 			// Pause text
-			xPause: 190,
-			yPause: 300,
+			xPause: 350,
+			yPause: 500,
 			// the touch tutorial image
 			xTut: 0,
 			yTut: 0,
@@ -127,12 +127,16 @@ var TheGame = function() {
 		wTile: 50,
 		// recently swap the tile with hold or not
 		justSwapped: false,
-		// ready to make a new tile or not
-		newTileReady: false,
 		// accepting input or not
 		acceptingInput: false,
-		// difficultyTimer, changes accordingly as level increases
-		diffTimer: 1500,
+		// force normal timer
+		forceNormalTimer: false,
+		// difficulty delay, changes accordingly as level increases
+		diffDelay: 1500,
+		// fast Delay, when player hold the Down button
+		fastDelay: 50,
+		// animation delay, how long to wait for animations to finish
+		animDelay: 400,
 		// current level
 		level: 1,
 		// current score
@@ -141,8 +145,6 @@ var TheGame = function() {
 		scoreMulti: 1,
 		// back-to-back clearing should award more points
 		justScored: false,
-		// is this the first tile ever?
-		firstTile: true,
 		// game ended?
 		gameEnded: false,
 		// high score
@@ -152,7 +154,17 @@ var TheGame = function() {
 		// group to store animations below the tile
 		belowTiles: undefined,
 		// list containing the commit animations
-		commitAnims: []
+		commitAnims: [],
+		// timekeeper
+		timeKeeper: 0,
+		// state of the game.
+		// -1: game did not start
+		// 0: creating new tile
+		// 1: new tile created & active. normal timer.
+		// 2: new tile created & active. fast timer.
+		// 3: waiting for row clear
+		// 4: paused
+		status: -1
 	};
 
 	// information of the active tile
@@ -168,8 +180,6 @@ var TheGame = function() {
 		type: 0,
 		// state, depend on what type it is
 		state: 0,
-		// the timer that lowers the tile down periodically
-		timer: undefined
 	};
 
 	// the next tile: current tile, object pool, and the type
@@ -281,11 +291,6 @@ var TheGame = function() {
 		aTile.state = 0;
 		aTile.x = gvar.xSpawn;
 		aTile.y = gvar.ySpawn;
-		// attach a timer to slowly lower the tile
-		aTile.timer = game.time.create(false);
-		aTile.timer.loop(gvar.diffTimer,lowerTile,this);
-		aTile.timer.start();
-		gvar.acceptingInput = true;
 	}
 
 	function transformTile(){
@@ -353,7 +358,7 @@ var TheGame = function() {
 					tmp.kill();
 					gTile.sc.pop();
 				}
-				gvar.newTileReady = true;
+				gvar.status = 0;
 			}
 			// else, there is a currently held tile
 			else {
@@ -381,6 +386,7 @@ var TheGame = function() {
 				tmp = getRandomType();
 				updateNextTile(tmp);
 				updateGhost();
+				gvar.timeKeeper = Date.now();
 			}
 
 			// kill the current one, if there is any
@@ -458,6 +464,10 @@ var TheGame = function() {
 		for (let i of newsc){
 			if (board[newx + i[0]][newy + i[1]] == 1) return;
 		}
+		// check for bottom bound of the board
+		for (let i of newsc){
+			if (newy + i[1] > gvar.hBoard) return;
+		}
 		// we're clear, let's rotate
 		aTile.x = newx;
 		aTile.y = newy;
@@ -508,16 +518,6 @@ var TheGame = function() {
 				delete tBoard[i][therow];
 			}
 
-			// add animations for all rows
-			var rx = gvar.yBoard+(therow*gvar.wTile);
-			console.log(therow,rx);
-			var anim = game.add.sprite(0,rx,'rowclear_anim');
-			anim.anchor.x = 0;
-			anim.anchor.y = 0.33;
-			//gvar.belowTiles.add(anim);
-			var fade = anim.animations.add('fade');
-			anim.animations.play('fade',60,false,true);
-
 			// move the whole board down one row
 			for (var i=therow; i>0; i--){
 				for (var j=0; j<gvar.wBoard; j++){
@@ -535,8 +535,6 @@ var TheGame = function() {
 				delete tBoard[j][0];
 			}
 		}
-		// continue the game
-		gvar.newTileReady = true;
 	}
 
 	function addCommitAnim(x,y){
@@ -569,32 +567,44 @@ var TheGame = function() {
 		var fade = anim.animations.add('fade');
 		anim.animations.play('fade',60,false,true);
 		gvar.commitAnims = [];
+
+		for (let therow of del){
+			// add animations for all rows
+			var rx = gvar.yBoard+(therow*gvar.wTile);
+			var anim = game.add.sprite(0,rx,'rowclear_anim');
+			anim.anchor.x = 0;
+			anim.anchor.y = 0.33;
+			//gvar.belowTiles.add(anim);
+			var fade = anim.animations.add('fade');
+			anim.animations.play('fade',60,false,true);
+		}
 	}
 
 	function updateLevel(){
 		// this is the whole gist of the difficulty settings
-		if (gvar.score < 3000){ gvar.level=69; gvar.scoreMulti=1; gvar.diffTimer=1500; }
-		else if (gvar.score < 6000){ gvar.level=2; gvar.scoreMulti=1; gvar.diffTimer=1000; }
-		else if (gvar.score < 11000){ gvar.level=3; gvar.scoreMulti=2; gvar.diffTimer=750; }
-		else if (gvar.score < 16000){ gvar.level=4; gvar.scoreMulti=2; gvar.diffTimer=650; }
-		else if (gvar.score < 22000){ gvar.level=5; gvar.scoreMulti=3; gvar.diffTimer=600; }
-		else if (gvar.score < 27000){ gvar.level=6; gvar.scoreMulti=3; gvar.diffTimer=550; }
-		else if (gvar.score < 34000){ gvar.level=7; gvar.scoreMulti=4; gvar.diffTimer=500; }
-		else if (gvar.score < 41000){ gvar.level=8; gvar.scoreMulti=4; gvar.diffTimer=450; }
-		else if (gvar.score < 49000){ gvar.level=9; gvar.scoreMulti=5; gvar.diffTimer=400; }
-		else if (gvar.score < 60000){ gvar.level=10; gvar.scoreMulti=5; gvar.diffTimer=350; }
+		if (gvar.score < 3000){ gvar.level=1; gvar.scoreMulti=1; gvar.diffDelay=1500; }
+		else if (gvar.score < 6000){ gvar.level=2; gvar.scoreMulti=1; gvar.diffDelay=1000; }
+		else if (gvar.score < 11000){ gvar.level=3; gvar.scoreMulti=2; gvar.diffDelay=750; }
+		else if (gvar.score < 16000){ gvar.level=4; gvar.scoreMulti=2; gvar.diffDelay=650; }
+		else if (gvar.score < 22000){ gvar.level=5; gvar.scoreMulti=3; gvar.diffDelay=600; }
+		else if (gvar.score < 27000){ gvar.level=6; gvar.scoreMulti=3; gvar.diffDelay=550; }
+		else if (gvar.score < 34000){ gvar.level=7; gvar.scoreMulti=4; gvar.diffDelay=500; }
+		else if (gvar.score < 41000){ gvar.level=8; gvar.scoreMulti=4; gvar.diffDelay=450; }
+		else if (gvar.score < 49000){ gvar.level=9; gvar.scoreMulti=5; gvar.diffDelay=400; }
+		else if (gvar.score < 60000){ gvar.level=10; gvar.scoreMulti=5; gvar.diffDelay=350; }
 		else {
 			gvar.level = Math.floor((gvar.score-60000)/10000+11);
 			gvar.scoreMulti = 6;
-			gvar.diffTimer = 300;
+			gvar.diffDelay = 300;
 		}
 	}
 
 	function commit(){
-		// first, disable input
+		// first, disable input and put timer on hold
 		gvar.acceptingInput = false;
-		// delete any timer on active tile
-		aTile.timer.destroy();
+		gvar.status = 3;
+		gvar.timeKeeper = Date.now();
+		gvar.forceNormalTimer = true;
 		// calculate how far the active tile is from the bottom
 		var count = 0;
 		while(itsOkayToGoDown(aTile)){
@@ -642,8 +652,6 @@ var TheGame = function() {
 			gvar.justScored = true;
 			// update the level
 			updateLevel();
-			// clear the full rows
-			clearFull();
 		} else {
 			// end game condition
 			for (var i=0; i<gvar.wBoard; i++){
@@ -651,7 +659,7 @@ var TheGame = function() {
 			}
 			// ready to make a new tile
 			gvar.justScored = false;
-			gvar.newTileReady = true;
+			gvar.status = 0;
 		}
 	}
 
@@ -660,12 +668,14 @@ var TheGame = function() {
 			game.paused = false;
 			hud.pauseText.visible = false;
 			gvar.acceptingInput = true;
+			gvar.timeKeeper = Date.now();
 		} else {
 			game.paused = true;
 			hud.pauseText.visible = true;
 			game.world.bringToTop(hud.pauseText);
 			gvar.acceptingInput = false;
 		}
+		console.log('time at pause:',gvar.timeKeeper);
 	}
 
 	function processInput(context,s){
@@ -682,18 +692,13 @@ var TheGame = function() {
 			if (gvar.acceptingInput)
 				rotateRight();
 			return;
-		} else if (arguments[1] == 'down'){
-			if (gvar.acceptingInput)
-				commit();
-			return;
 		} else if (arguments[1] == 'esc'){
 			togglePause();
 			return;
-		} else if (arguments[1] == 'enter'){
-			if (gvar.firstTile){
-				startGame();
-				return;
-			}
+		} else if (arguments[1] == 'space'){
+			if (gvar.acceptingInput)
+				commit();
+			return;
 		} else if (arguments[1] == 'shift'){
 			if (gvar.acceptingInput)
 				holdTile();
@@ -747,46 +752,13 @@ var TheGame = function() {
 
 		// some starting variables
 		game.pause = false;
-		gvar.newTileReady = true;
-		gvar.acceptingInput = true;
 		gvar.tiles = game.add.group();
 		gvar.belowTiles = game.add.group();
 
+		// game field background
 		hud.gameField = game.add.sprite(gvar.hudPos.xTut,gvar.hudPos.yTut,'gamebg');
 
-		// the four lines showing the boundaries of the board
-		//hud.gameField = game.add.graphics(0,0);
-		//hud.gameField.beginFill(0x000000,0);
-		//hud.gameField.lineStyle(2,0xffffff,1);
-		//hud.gameField.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
-		//hud.gameField.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-		//hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-		//hud.gameField.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
-		//hud.gameField.endFill();
-
-		// the mask of the board for the active tile
-		//hud.gameFieldMask = game.add.graphics(0,0);
-		//hud.gameFieldMask.beginFill(0x000000,0);
-		//hud.gameFieldMask.lineStyle(2,0xffffff,1);
-		//hud.gameFieldMask.moveTo(gvar.xBoard,gvar.yBoard+gvar.wTile);
-		//hud.gameFieldMask.lineTo(gvar.xBoard,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-		//hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+(gvar.hBoard+1)*gvar.wTile);
-		//hud.gameFieldMask.lineTo(gvar.xBoard+gvar.wBoard*gvar.wTile,gvar.yBoard+gvar.wTile);
-		//hud.gameFieldMask.endFill();
-
-		// get the highscore from a GET query
-		//$.get( "/z/getHighScore", function( data ) {
-		//	if (data.weekly){
-		//		var weekly = data.weekly;
-		//		weekly.sort(function(a,b){
-		//			return b.score - a.score;
-		//		});
-		//		gvar.highscore = weekly[0].score;
-		//	}
-		//});
-
-		// the texts up top
-		//hud.nextText = game.add.bitmapText(gvar.hudPos.xNext,gvar.hudPos.yNext,'arcadefont','next: ',15);
+		// the texts
 		hud.levelText = game.add.bitmapText(gvar.hudPos.xLevel,gvar.hudPos.yLevel,'highscorefont','1',50);
 		hud.levelText.anchor.x = 0.5;
 		hud.levelText.anchor.y = 0.5;
@@ -808,14 +780,13 @@ var TheGame = function() {
 		keyleft.onDown.add(processInput, this, 0, 'left');
 		var keyright = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
 		keyright.onDown.add(processInput, this, 0, 'right');
-		var keydown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
-		keydown.onDown.add(processInput, this, 0, 'down');
 		var keyspace = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-		keyspace.onDown.add(processInput, this, 0, 'down');
+		keyspace.onDown.add(processInput, this, 0, 'space');
 		var keyesc = game.input.keyboard.addKey(Phaser.Keyboard.ESC);
 		keyesc.onDown.add(processInput, this, 0, 'esc');
 		var keyshift = game.input.keyboard.addKey(Phaser.Keyboard.SHIFT);
 		keyshift.onDown.add(processInput, this, 0, 'shift');
+		gvar.keydown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
 	}
 
 	function getRandomType(){
@@ -840,33 +811,64 @@ var TheGame = function() {
 	}
 
 	this.update = function(){
-		if (gvar.newTileReady){
-			if (gvar.firstTile){
+		// inputs
+		if (gvar.keydown.isDown && !gvar.forceNormalTimer && gvar.status == 1){
+			gvar.status = 2;
+		}
+		if (gvar.keydown.isUp && gvar.status == 2){
+			gvar.status = 1;
+		}
+		if (gvar.keydown.isUp && gvar.status == 1 && gvar.forceNormalTimer){
+			gvar.forceNormalTimer = false;
+		}
+
+		// if game hasn't started yet
+		// or if a new tile needs to be created
+		if (gvar.status <= 0){
+			if (gvar.status == -1){
 				var type = getRandomType();
 				updateNextTile(type);
-				gvar.firstTile = false;
 			}
-			gvar.newTileReady = false;
-			gvar.justSwapped = false;
 			makeNewTile(nTile.type);
 			var type = getRandomType();
 			updateNextTile(type);
 			updateGhost();
+			gvar.justSwapped = false;
+			gvar.status = 1;
+			gvar.acceptingInput = true;
+			gvar.timeKeeper = Date.now();
 		}
 
-		if (!gvar.firstTile){
-			if (hud.scoreText.text != gvar.score)
-				hud.scoreText.text = gvar.score;
-			if (hud.levelText.text != gvar.level)
-				hud.levelText.text = gvar.level;
+		// timer to lower the tile
+		if (gvar.status == 1 && Date.now() - gvar.timeKeeper >= gvar.diffDelay){
+			lowerTile();
+			gvar.timeKeeper = Date.now();
 		}
+		if (gvar.status == 2 && Date.now() - gvar.timeKeeper >= gvar.fastDelay){
+			gvar.score += 1*gvar.scoreMulti;
+			lowerTile();
+			gvar.timeKeeper = Date.now();
+		}
+
+		// timer to resume after commit
+		if (gvar.status == 3 && Date.now() - gvar.timeKeeper >= gvar.animDelay){
+			console.log('resume time:',Date.now(),'keeper time:',gvar.timeKeeper);
+			clearFull();
+			gvar.status = 0;
+		}
+
+		// update texts
+		if (hud.scoreText.text != gvar.score)
+			hud.scoreText.text = gvar.score;
+		if (hud.levelText.text != gvar.level)
+			hud.levelText.text = gvar.level;
 	}
 
 	function gameOver(){
 		if (!gvar.gameEnded){
 			gvar.gameEnded = true;
 			togglePause();
-			gvar.newTileReady = false;
+			//gvar.newTileReady = false;
 			// destroy all the text and the next Tile
 			hud.scoreText.destroy();
 			hud.levelText.destroy();
@@ -900,39 +902,3 @@ var TheGame = function() {
 	}
 
 };
-//var TheGame = function() {
-//	var gvar =  {
-//		beenHereBefore: false,
-//		xBG: 0,
-//		yBG: 0,
-//		xStart: 200,
-//		yStart: 350
-//	};
-//
-//	const SOMETHING = "abcdef";
-//
-//	this.preload = function(){
-//		// fixes all the positions
-//		if (!gvar.beenHereBefore){
-//			gvar.beenHereBefore = true;
-//			for (var i in gvar){
-//				if (i.startsWith('x'))
-//					gvar[i] += gameSettings.xOffset / 2;
-//				if (i.startsWith('y'))
-//					gvar[i] += gameSettings.yOffset / 2;
-//			}
-//		}
-//	}
-//
-//	function printtest(){
-//		var txt = game.add.bitmapText(gvar.xStart, gvar.yStart,'streamster',SOMETHING,60);
-//		txt.anchor.x = 0.5;
-//		txt.anchor.y = 0.5;
-//	}
-//
-//	this.create = function() {
-//		game.add.sprite(gvar.xBG,gvar.yBG,'theatlas','menubg');
-//		printtest();
-//	}
-//
-//};
