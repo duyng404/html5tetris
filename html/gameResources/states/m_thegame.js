@@ -880,7 +880,7 @@
 
 	this.update = function(){
 		// inputs
-		var pp = game.input.mousePointer; var px = pp.x; var py = pp.y;
+		var pp = game.input.pointer1; var px = pp.x; var py = pp.y;
 		if ((gvar.keydownslow.isDown && !gvar.forceNormalTimer && gvar.status == 1)
 			|| (pp.isDown && py>gvar.hudPos.yHoriz3 && px>gvar.hudPos.xSides && px<gvar.gameWidth-gvar.hudPos.xSides
 				&& !gvar.forceNormalTimer && gvar.status == 1)) {
