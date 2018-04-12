@@ -1,26 +1,27 @@
-var Splash = function() {};
+var M_Splash = function() {};
 
-Splash.prototype = {
+M_Splash.prototype = {
 	gvar: {
 		xBG: 0,
 		yBG: 0
 	},
 
 	loadScripts: function () {
-		game.load.script('menu','./gameResources/states/menu.js');
-		game.load.script('thegame','./gameResources/states/thegame.js');
+		game.load.script('m_menu','./gameResources/states/m_menu.js');
+		game.load.script('m_thegame','./gameResources/states/m_thegame.js');
+		game.load.script('m_tutorial','./gameResources/states/m_tutorial.js');
 		game.load.script('gameover','./gameResources/states/gameover.js');
 		game.load.script('highscore','./gameResources/states/highscore.js');
-		game.load.script('settings','./gameResources/states/settings.js');
-		game.load.script('resetgame','./gameResources/states/resetgame.js');
+		game.load.script('m_resetgame','./gameResources/states/m_resetgame.js');
 	},
 
 	loadImages: function () {
 		game.load.atlasJSONArray('textureAtlas','./gameResources/assets/texture.png','./gameResources/assets/texture.json');
 		game.load.atlasJSONArray('bgAtlas','./gameResources/assets/bgs.png','./gameResources/assets/bgs.json');
-		game.load.image('gamebg',    './gameResources/assets/gamebg.png');
+		game.load.image('gamebg',    './gameResources/assets/m_gamebg.png');
 		game.load.image('menubg',    './gameResources/assets/menubg.png');
-		game.load.image('settingsbg',    './gameResources/assets/settingsbg.png');
+		game.load.image('tutorialbg',    './gameResources/assets/tutorialbg.png');
+		game.load.image('tutorial_frame',    './gameResources/assets/tutorial_frame.png');
 		game.load.spritesheet('commit_anim','./gameResources/assets/commitanimation.png',50,900);
 		game.load.spritesheet('rowclear_anim','./gameResources/assets/rowclearanimation.png',700,150);
 	},
@@ -56,8 +57,8 @@ Splash.prototype = {
 		game.state.add("TheGame",TheGame);
 		game.state.add("GameOver",GameOver);
 		game.state.add("HighScore",HighScore);
-		game.state.add("Settings",Settings);
 		game.state.add("ResetGame",ResetGame);
+		game.state.add("Tutorial",Tutorial);
 	},
 
 	create: function() {

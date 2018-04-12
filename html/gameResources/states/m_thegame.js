@@ -75,11 +75,11 @@
 		xSpawn: 4,
 		ySpawn: 1,
 		// next tile position, in real pixels
-		xNext: 20,
-		yNext: 857,
+		xNext: 620,
+		yNext: 694,
 		// hold tile position, in real pixels
-		xHold: 620,
-		yHold: 694,
+		xHold: 20,
+		yHold: 857,
 		// board sizes
 		wBoard: 10,
 		hBoard: 17,
@@ -117,14 +117,15 @@
 			yHSButton: 375,
 			// back to menu button
 			xBack: 350,
-			yBack: 600,
+			yBack: 30,
 			// Game Over text
 			xGameOver: 35,
 			yGameOver: 7,
 			// boundaries of the touch inputs
-			yControlPause: 80,
-			yControlRotate: 300,
-			yControlLR: 450,
+			yHoriz1: 125,
+			yHoriz2: 500,
+			yHoriz3: 850,
+			xSides: 100,
 		},
 		// tile size
 		wTile: 50,
@@ -455,6 +456,34 @@
 		updateGhost();
 	}
 
+	function rotateLeft(){
+		// precalculate the new position after rotate
+		var newx = aTile.x; var newy = aTile.y;
+		var newstate = (aTile.state + STATE[aTile.type].length - 1) % STATE[aTile.type].length;
+		var newsc = STATE[aTile.type][newstate].slice();
+		// bound check. If it goes outside after rotate, nudge it back
+		for (let i of newsc){
+			if (newx + i[0] > gvar.wBoard-1) newx -= 1;
+			if (newx + i[0] < 0) newx += 1;
+		}
+		// check if any existing tile is in the way. if it is, NO ROTATE!!!
+		for (let i of newsc){
+			if (board[newx + i[0]][newy + i[1]] == 1) return;
+		}
+		// check for bottom bound of the board
+		for (let i of newsc){
+			if (newy + i[1] > gvar.hBoard) return;
+		}
+		// we're clear, let's rotate
+		aTile.x = newx;
+		aTile.y = newy;
+		aTile.sc = newsc.slice();
+		aTile.state = newstate;
+		transformTile();
+		// also update the ghost tile
+		updateGhost();
+	}
+
 	function rotateRight(){
 		// precalculate the new position after rotate
 		var newx = aTile.x; var newy = aTile.y;
@@ -673,12 +702,14 @@
 			game.paused = false;
 			hud.pauseText.visible = false;
 			hud.backButton.visible = false;
+			hud.scoreText.visible = true;
 			gvar.acceptingInput = true;
 			gvar.timeKeeper = Date.now();
 		} else {
 			game.paused = true;
 			hud.pauseText.visible = true;
 			hud.backButton.visible = true;
+			hud.scoreText.visible = false;
 			game.world.bringToTop(hud.pauseText);
 			game.world.bringToTop(hud.backButton);
 			gvar.acceptingInput = false;
@@ -712,34 +743,33 @@
 				holdTile();
 			return;
 		} else if (arguments[2] == 'touch'){
-			// if game havent' started
-			if (gvar.firstTile){
-				// draw the touch guides on the sides
-				touchGuide();
-				// start the game
-				startGame();
-				return;
-			}
 			if (game.paused){
-				togglePause();
+				py = arguments[0].y;
+				if (py < 70) {
+					togglePause();
+					game.state.clearCurrentState();
+					game.state.start("ResetGame");
+				} else togglePause();
 				return;
 			}
 			if (gvar.acceptingInput){
 				px = arguments[0].x;
 				py = arguments[0].y;
-				if (py < gvar.hudPos.yControlPause){
+				if (py < gvar.hudPos.yHoriz1){
 					// the top part: pause the game
 					togglePause();
-				} else if (py < gvar.hudPos.yControlRotate){
+				} else if (py < gvar.hudPos.yHoriz2){
 					// rotate the tile
-					rotateRight();
-				} else if (py < gvar.hudPos.yControlLR){
+					if (px / game.width < 0.5) rotateLeft();
+					else rotateRight();
+				} else if (py < gvar.hudPos.yHoriz3){
 					// move the tile left or right
 					if (px / game.width < 0.5) moveLeft();
 					else moveRight();
 				} else {
-					// commit the tile
-					commit();
+					// hold function
+					if (px < gvar.hudPos.xSides) holdTile();
+					if (px > gvar.gameWidth-gvar.hudPos.xSides) commit();
 				}
 			}
 			return;
@@ -757,6 +787,17 @@
 		if (hud.touchButtonReal) hud.touchButtonReal.destroy();
 		if (hud.HSButton) hud.HSButton.destroy();
 		if (hud.HSButtonReal) hud.HSButtonReal.destroy();
+
+		// tutorial frame
+		var tut = game.add.sprite(0,0,'tutorial_frame');
+		tut.alpha = 0.8;
+		var tuttween = game.add.tween(tut).to( {alpha: 0.2 }, 10000, Phaser.Easing.Exponential.Out, false )
+		tuttween.onComplete.add(function(){
+			var tween2 = game.add.tween(tut).to( {alpha: 0 }, 2000, Phaser.Easing.Linear.Out, false )
+			tween2.onComplete.add(function(){tut.destroy();});
+			tween2.start();
+		});
+		tuttween.start();
 
 		// some starting variables
 		game.pause = false;
@@ -795,6 +836,7 @@
 		game.world.bringToTop(gvar.belowTiles);
 		game.world.bringToTop(gvar.tiles);
 		game.world.bringToTop(hud.scoreText);
+		game.world.bringToTop(tut);
 
 		// keyboard events
 		var keyrotate = game.input.keyboard.addKey(gameSettings.p1Rotate[0]);
@@ -810,6 +852,9 @@
 		var keyhold = game.input.keyboard.addKey(gameSettings.p1Hold[0]);
 		keyhold.onDown.add(processInput, this, 0, 'shift');
 		gvar.keydownslow = game.input.keyboard.addKey(gameSettings.p1DownSlow[0]);
+
+		// touch events
+		game.input.onDown.add(processInput, this, 0, 'touch');
 	}
 
 	function getRandomType(){
@@ -835,13 +880,20 @@
 
 	this.update = function(){
 		// inputs
-		if (gvar.keydownslow.isDown && !gvar.forceNormalTimer && gvar.status == 1){
+		var pp = game.input.mousePointer; var px = pp.x; var py = pp.y;
+		if ((gvar.keydownslow.isDown && !gvar.forceNormalTimer && gvar.status == 1)
+			|| (pp.isDown && py>gvar.hudPos.yHoriz3 && px>gvar.hudPos.xSides && px<gvar.gameWidth-gvar.hudPos.xSides
+				&& !gvar.forceNormalTimer && gvar.status == 1)) {
+			console.log("DOWNNNN");
 			gvar.status = 2;
 		}
-		if (gvar.keydownslow.isUp && gvar.status == 2){
+		if ((gvar.keydownslow.isUp && gvar.status == 2)
+			&& (pp.isUp && gvar.status == 2)) {
+			console.log("UPPP");
 			gvar.status = 1;
 		}
-		if (gvar.keydownslow.isUp && gvar.status == 1 && gvar.forceNormalTimer){
+		if ((gvar.keydownslow.isUp && gvar.status == 1 && gvar.forceNormalTimer)
+			&& (pp.isUp && gvar.status == 1 && gvar.forceNormalTimer)){
 			gvar.forceNormalTimer = false;
 		}
 

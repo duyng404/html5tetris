@@ -5,9 +5,8 @@ Menu.prototype = {
 		beenHereBefore: false,
 		xBG: 0,
 		yBG: 0,
-		yPlayGame: 640,
-		ySettings: 730,
-		yHighscores: 820
+		yPlayGame: 650,
+		yHighscores: 800
 	},
 
 	preload: function(){
@@ -28,17 +27,17 @@ Menu.prototype = {
 
 		game.add.sprite(this.gvar.xBG,this.gvar.yBG,'menubg');
 
-		var singleplayer = game.add.button(game.world.centerX, this.gvar.yPlayGame, 'textureAtlas', function() {game.state.start("TheGame")}, this, 'playgame_over', 'playgame_normal');
+		var singleplayer = game.add.button(game.world.centerX, this.gvar.yPlayGame, 'textureAtlas', function() {game.state.start("Tutorial")}, this, 'playgame_over', 'playgame_normal');
 		singleplayer.anchor.x = 0.5;
 		singleplayer.anchor.y = 0.5;
-
-		var settings = game.add.button(game.world.centerX, this.gvar.ySettings, 'textureAtlas', function() {game.state.start("Settings")}, this, 'settings_over', 'settings_normal');
-		settings.anchor.x = 0.5;
-		settings.anchor.y = 0.5;
+		singleplayer.scale.x = 1.5;
+		singleplayer.scale.y = 1.5;
 
 		var highscores = game.add.button(game.world.centerX, this.gvar.yHighscores, 'textureAtlas', function() {game.state.start("HighScore")}, this, 'highscores_over', 'highscores_normal');
 		highscores.anchor.x = 0.5;
 		highscores.anchor.y = 0.5;
+		highscores.scale.x = 1.5;
+		highscores.scale.y = 1.5;
 
 	}
 };
