@@ -138,6 +138,8 @@
 		diffDelay: 1500,
 		// fast Delay, when player hold the Down button
 		fastDelay: 50,
+		// medium delay, for left and right button
+		medDelay: 125,
 		// animation delay, how long to wait for animations to finish
 		animDelay: 400,
 		// current level
@@ -158,8 +160,9 @@
 		belowTiles: undefined,
 		// list containing the commit animations
 		commitAnims: [],
-		// timekeeper
+		// timekeeper(s)
 		timeKeeper: 0,
+		kbTimeKeeper: 0,
 		// state of the game.
 		// -1: game did not start
 		// 0: creating new tile
@@ -296,6 +299,7 @@
 		aTile.state = 0;
 		aTile.x = gvar.xSpawn;
 		aTile.y = gvar.ySpawn;
+		console.log("finished making new tile");
 	}
 
 	function transformTile(){
@@ -416,16 +420,17 @@
 			for (let tile of aTile.sq){
 				tile.y += gvar.wTile;
 			}
+			// enable input
+			gvar.acceptingInput = true;
 		}
 		// if cannot, then commit
 		else {
 			commit();
 		}
-		// enable input
-		gvar.acceptingInput = true;
 	}
 
 	function moveLeft(){
+		console.log('moving left');
 		// can we really move left?
 		for (var i=0; i<aTile.sc.length; i++){
 			// if it touches the left border
@@ -509,6 +514,7 @@
 	}
 
 	function clearFull(){
+		console.log("CLEARING ROW");
 		// sort the del array from highest to lowest
 		del.sort(sortNumber);
 		del.reverse();
@@ -605,8 +611,10 @@
 	}
 
 	function commit(){
+		console.log('commit time =', Date.now());
 		// first, disable input and put timer on hold
 		gvar.acceptingInput = false;
+		console.log("committing. disbled input. acceptingInput = ",gvar.acceptingInput);
 		gvar.status = 3;
 		gvar.timeKeeper = Date.now();
 		gvar.forceNormalTimer = true;
@@ -683,7 +691,6 @@
 			game.world.bringToTop(hud.backButton);
 			gvar.acceptingInput = false;
 		}
-		console.log('time at pause:',gvar.timeKeeper);
 	}
 
 	function processInput(context,s){
@@ -693,8 +700,10 @@
 			}
 			return;
 		} else if (arguments[1] == 'left'){
-			if (gvar.acceptingInput)
+			if (gvar.acceptingInput){
+				console.log('acceptingInput = ',gvar.acceptingInput);
 				moveLeft();
+			}
 			return;
 		} else if (arguments[1] == 'up'){
 			if (gvar.acceptingInput)
@@ -799,10 +808,6 @@
 		// keyboard events
 		var keyrotate = game.input.keyboard.addKey(gameSettings.p1Rotate[0]);
 		keyrotate.onDown.add(processInput, this, 0, 'up');
-		var keyleft = game.input.keyboard.addKey(gameSettings.p1Left[0]);
-		keyleft.onDown.add(processInput, this, 0, 'left');
-		var keyright = game.input.keyboard.addKey(gameSettings.p1Right[0]);
-		keyright.onDown.add(processInput, this, 0, 'right');
 		var keydowninsta = game.input.keyboard.addKey(gameSettings.p1DownInstant[0]);
 		keydowninsta.onDown.add(processInput, this, 0, 'space');
 		var keypause = game.input.keyboard.addKey(gameSettings.pauseButton[0]);
@@ -810,6 +815,10 @@
 		var keyhold = game.input.keyboard.addKey(gameSettings.p1Hold[0]);
 		keyhold.onDown.add(processInput, this, 0, 'shift');
 		gvar.keydownslow = game.input.keyboard.addKey(gameSettings.p1DownSlow[0]);
+		gvar.keyleft = game.input.keyboard.addKey(gameSettings.p1Left[0]);
+		gvar.keyright = game.input.keyboard.addKey(gameSettings.p1Right[0]);
+		//keyleft.onDown.add(processInput, this, 0, 'left');
+		//keyright.onDown.add(processInput, this, 0, 'right');
 	}
 
 	function getRandomType(){
@@ -834,6 +843,7 @@
 	}
 
 	this.update = function(){
+		tmp = Date.now();
 		// inputs
 		if (gvar.keydownslow.isDown && !gvar.forceNormalTimer && gvar.status == 1){
 			gvar.status = 2;
@@ -844,33 +854,41 @@
 		if (gvar.keydownslow.isUp && gvar.status == 1 && gvar.forceNormalTimer){
 			gvar.forceNormalTimer = false;
 		}
+		if (gvar.keyleft.isDown && Date.now() - gvar.kbTimeKeeper > gvar.medDelay){
+			console.log('moving left. update time=',tmp,'acceptingInput = ',gvar.acceptingInput);
+			processInput(null,'left');
+			gvar.kbTimeKeeper = Date.now();
+		}
+		if (gvar.keyright.isDown && Date.now() - gvar.kbTimeKeeper > gvar.medDelay){
+			processInput(null,'right');
+			gvar.kbTimeKeeper = Date.now();
+		}
 
 		// if game hasn't started yet
 		// or if a new tile needs to be created
 		if (gvar.status <= 0){
-			console.log('creating a new tile');
 			if (gvar.status == -1){
 				var type = getRandomType();
 				updateNextTile(type);
 			}
+			console.log('calling makeNewTile');
 			makeNewTile(nTile.type);
 			var type = getRandomType();
 			updateNextTile(type);
 			updateGhost();
 			gvar.justSwapped = false;
 			gvar.status = 1;
+			console.log('enabling input');
 			gvar.acceptingInput = true;
 			gvar.timeKeeper = Date.now();
 		}
 
 		// timer to lower the tile
 		if (gvar.status == 1 && Date.now() - gvar.timeKeeper >= gvar.diffDelay){
-			console.log('lowering the tile. normal delay');
 			lowerTile();
 			gvar.timeKeeper = Date.now();
 		}
 		if (gvar.status == 2 && Date.now() - gvar.timeKeeper >= gvar.fastDelay){
-			console.log('lowering the tile. fast delay');
 			gvar.score += 1*gvar.scoreMulti;
 			lowerTile();
 			gvar.timeKeeper = Date.now();
@@ -878,18 +896,15 @@
 
 		// timer to resume after commit
 		if (gvar.status == 3 && Date.now() - gvar.timeKeeper >= gvar.animDelay){
-			console.log('clearing full rows');
 			clearFull();
 			gvar.status = 0;
 		}
 
 		// update texts
 		if (hud.scoreText.text != gvar.score){
-			console.log('updating score text');
 			hud.scoreText.text = gvar.score;
 		}
 		if (hud.levelText.text != gvar.level){
-			console.log('updating level text');
 			hud.levelText.text = gvar.level;
 		}
 	}
