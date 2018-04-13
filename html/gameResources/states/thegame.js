@@ -299,7 +299,6 @@
 		aTile.state = 0;
 		aTile.x = gvar.xSpawn;
 		aTile.y = gvar.ySpawn;
-		console.log("finished making new tile");
 	}
 
 	function transformTile(){
@@ -430,7 +429,6 @@
 	}
 
 	function moveLeft(){
-		console.log('moving left');
 		// can we really move left?
 		for (var i=0; i<aTile.sc.length; i++){
 			// if it touches the left border
@@ -514,7 +512,6 @@
 	}
 
 	function clearFull(){
-		console.log("CLEARING ROW");
 		// sort the del array from highest to lowest
 		del.sort(sortNumber);
 		del.reverse();
@@ -611,10 +608,8 @@
 	}
 
 	function commit(){
-		console.log('commit time =', Date.now());
 		// first, disable input and put timer on hold
 		gvar.acceptingInput = false;
-		console.log("committing. disbled input. acceptingInput = ",gvar.acceptingInput);
 		gvar.status = 3;
 		gvar.timeKeeper = Date.now();
 		gvar.forceNormalTimer = true;
@@ -701,7 +696,6 @@
 			return;
 		} else if (arguments[1] == 'left'){
 			if (gvar.acceptingInput){
-				console.log('acceptingInput = ',gvar.acceptingInput);
 				moveLeft();
 			}
 			return;
@@ -855,7 +849,6 @@
 			gvar.forceNormalTimer = false;
 		}
 		if (gvar.keyleft.isDown && Date.now() - gvar.kbTimeKeeper > gvar.medDelay){
-			console.log('moving left. update time=',tmp,'acceptingInput = ',gvar.acceptingInput);
 			processInput(null,'left');
 			gvar.kbTimeKeeper = Date.now();
 		}
@@ -871,14 +864,12 @@
 				var type = getRandomType();
 				updateNextTile(type);
 			}
-			console.log('calling makeNewTile');
 			makeNewTile(nTile.type);
 			var type = getRandomType();
 			updateNextTile(type);
 			updateGhost();
 			gvar.justSwapped = false;
 			gvar.status = 1;
-			console.log('enabling input');
 			gvar.acceptingInput = true;
 			gvar.timeKeeper = Date.now();
 		}

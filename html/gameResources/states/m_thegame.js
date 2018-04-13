@@ -139,6 +139,8 @@
 		diffDelay: 1500,
 		// fast Delay, when player hold the Down button
 		fastDelay: 50,
+		// medium delay, for left and right button
+		medDelay: 125,
 		// animation delay, how long to wait for animations to finish
 		animDelay: 400,
 		// current level
@@ -159,8 +161,9 @@
 		belowTiles: undefined,
 		// list containing the commit animations
 		commitAnims: [],
-		// timekeeper
+		// timekeeper(s)
 		timeKeeper: 0,
+		kbTimeKeeper: 0,
 		// state of the game.
 		// -1: game did not start
 		// 0: creating new tile
@@ -417,13 +420,13 @@
 			for (let tile of aTile.sq){
 				tile.y += gvar.wTile;
 			}
+			// enable input
+			gvar.acceptingInput = true;
 		}
 		// if cannot, then commit
 		else {
 			commit();
 		}
-		// enable input
-		gvar.acceptingInput = true;
 	}
 
 	function moveLeft(){
@@ -764,8 +767,8 @@
 					else rotateRight();
 				} else if (py < gvar.hudPos.yHoriz3){
 					// move the tile left or right
-					if (px / game.width < 0.5) moveLeft();
-					else moveRight();
+					//if (px / game.width < 0.5) moveLeft();
+					//else moveRight();
 				} else {
 					// hold function
 					if (px < gvar.hudPos.xSides) holdTile();
@@ -880,7 +883,9 @@
 
 	this.update = function(){
 		// inputs
-		var pp = game.input.pointer1; var px = pp.x; var py = pp.y;
+		var pp = game.input.pointer1;
+		//var pp = game.input.mousePointer;
+		var px = pp.x; var py = pp.y;
 		if ((gvar.keydownslow.isDown && !gvar.forceNormalTimer && gvar.status == 1)
 			|| (pp.isDown && py>gvar.hudPos.yHoriz3 && px>gvar.hudPos.xSides && px<gvar.gameWidth-gvar.hudPos.xSides
 				&& !gvar.forceNormalTimer && gvar.status == 1)) {
@@ -895,6 +900,14 @@
 		if ((gvar.keydownslow.isUp && gvar.status == 1 && gvar.forceNormalTimer)
 			&& (pp.isUp && gvar.status == 1 && gvar.forceNormalTimer)){
 			gvar.forceNormalTimer = false;
+		}
+		// left and right touch
+		if (pp.isDown && py > gvar.hudPos.yHoriz2 && py < gvar.hudPos.yHoriz3 && Date.now()-gvar.kbTimeKeeper > gvar.medDelay){
+			if (px / game.width < 0.5)
+				processInput(null,'left');
+			else
+				processInput(null,'right');
+			gvar.kbTimeKeeper = Date.now();
 		}
 
 		// if game hasn't started yet
