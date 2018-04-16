@@ -281,7 +281,7 @@
 	}
 
 	function makeNewTile(type){
-		// get the type from next tile
+		// get the type
 		aTile.type = type;
 		// get the first state of that type
 		aTile.sc = STATE[aTile.type][0].slice();
@@ -390,8 +390,6 @@
 				// make new tile
 				makeNewTile(aTile.type);
 				// update necessary stuff
-				tmp = getRandomType();
-				updateNextTile(tmp);
 				updateGhost();
 				gvar.timeKeeper = Date.now();
 			}

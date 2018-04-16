@@ -235,8 +235,17 @@
 	"pivot": {"x":0.5,"y":0.5}
 },
 {
-	"filename": "ztile",
+	"filename": "xtile",
 	"frame": {"x":676,"y":481,"w":50,"h":50},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":50,"h":50},
+	"sourceSize": {"w":50,"h":50},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "ztile",
+	"frame": {"x":726,"y":481,"w":50,"h":50},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":50,"h":50},
@@ -250,6 +259,6 @@
 	"format": "RGBA8888",
 	"size": {"w":1019,"h":557},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:d9b64ba029aac344f70bdaeced35eafb:4536d9210a1f83d320a084d78efe65dc:88db1022cd6b660616541d2788fcd4f7$"
+	"smartupdate": "$TexturePacker:SmartUpdate:887de51164c1bb0aa99a2a44625d92a6:6975c6a3918fcae1994717b0fbd27b4d:88db1022cd6b660616541d2788fcd4f7$"
 }
 }

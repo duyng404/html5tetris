@@ -24,7 +24,7 @@
     "express": "^4.16.2",
     "jsonfile": "^4.0.0",
     "jsonwebtoken": "^8.1.0",
-    "moment": "^2.19.1",
+    "moment": "^2.22.1",
     "ngstorage": "^0.3.11"
   }
 }

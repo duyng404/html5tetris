@@ -280,7 +280,7 @@
 	}
 
 	function makeNewTile(type){
-		// get the type from next tile
+		// get the type
 		aTile.type = type;
 		// get the first state of that type
 		aTile.sc = STATE[aTile.type][0].slice();
@@ -389,8 +389,6 @@
 				// make new tile
 				makeNewTile(aTile.type);
 				// update necessary stuff
-				tmp = getRandomType();
-				updateNextTile(tmp);
 				updateGhost();
 				gvar.timeKeeper = Date.now();
 			}
@@ -753,14 +751,6 @@
 	}
 
 	this.create = function(){
-		// destroy any unnecessary leftover HUD elements
-		if (hud.tutorial) hud.tutorial.destroy();
-		if (hud.tutText) hud.tutText.destroy();
-		if (hud.touchButton) hud.touchButton.destroy();
-		if (hud.touchButtonReal) hud.touchButtonReal.destroy();
-		if (hud.HSButton) hud.HSButton.destroy();
-		if (hud.HSButtonReal) hud.HSButtonReal.destroy();
-
 		// some starting variables
 		game.pause = false;
 		gvar.tiles = game.add.group();
