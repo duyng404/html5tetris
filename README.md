@@ -1,8 +1,6 @@
 # html5tetris
 My attempt at a tetris clone using html5 and js. Created using Phaser game engine.
 
------
-
 ## Overview
 
 It's a tetris game that runs in web browser! Also included a web server written in nodejs for handling highscore. Some features include:
