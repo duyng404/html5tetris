@@ -8,10 +8,10 @@ var app = express();
 
 // the highscore database is only a json file at root
 //const HIGHSCOREFILE = './highscore.json'
-const HIGHSCOREFILE = path.join(__dirname,'/highscore.json');
+const HIGHSCOREFILE = path.join(__dirname,'/data/highscore.json');
 
 // this server gonna run on this port
-app.set('port', 8080);
+app.set('port', 6000);
 
 // logging out all the access
 //app.use(function(req, res, next){
@@ -115,6 +115,7 @@ function postHighScore(req,res){
 				// internal: are we writing this into json or not
 				"posting": true
 			};
+			console.log("receiving new scores:", newScore);
 			// get vars from file
 			var alltime = obj.alltime;
 			var weekly = obj.weekly;

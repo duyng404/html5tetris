@@ -42,7 +42,7 @@ Note that this instruction is applicable to only Linux, because that's my dev en
 - `cd` into repo
 - `npm install`
 - Installation is complete. Run the server with `node highscoreServer.js`
-- Open up your browser and go to `localhost:8080`. Enjoy your own tetris!!
+- Open up your browser and go to `localhost:6000`. Enjoy your own tetris!!
 
 ## Source code explanation
 
