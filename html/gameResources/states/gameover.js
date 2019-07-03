@@ -10,7 +10,7 @@ GameOver.prototype = {
 		TheGame = null;
 
 		// get current epoch
-		$.get( "http://icanhazepoch.com", function(data) {
+		$.get( "https://icanhazepoch.com", function(data) {
 			// once got it, set the time
 			var d = data*1000;
 			localStorage.setItem('time',d);
