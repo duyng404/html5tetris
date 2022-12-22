@@ -23,7 +23,7 @@
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "jsonfile": "^4.0.0",
-    "jsonwebtoken": "^8.1.0",
+    "jsonwebtoken": "^9.0.0",
     "moment": "^2.22.1",
     "ngstorage": "^0.3.11"
   }
